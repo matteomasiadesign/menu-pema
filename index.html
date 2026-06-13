@@ -96,36 +96,51 @@
         const SUPABASE_URL = "https://cpmianmjcxhputneygsw.supabase.co";
         const SUPABASE_KEY = "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm";
         
-        let supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let supabase = null;
         let menuItems = [];
         let activeCategory = 'Tutti';
         let currentLang = 'it';
 
         async function init() {
             try {
-                // Recupera SOLAMENTE i dati veri dal database
+                // Inizializzazione sicura: non blocca la pagina se manca la rete o libreria bloccata
+                if (!window.supabase) {
+                    throw new Error("SDK Supabase non trovato. Disabilita l'AdBlocker.");
+                }
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
                 const { data, error } = await supabase.from('menu').select('*').eq('available', true).order('category', { ascending: true });
                 if (error) throw error;
+                
                 menuItems = data || [];
             } catch (e) {
-                console.error("Errore recupero dati:", e);
-                menuItems = []; // Se c'è errore, l'array resta vuoto
+                console.error("Errore di caricamento Database:", e);
+                menuItems = []; 
+            } finally {
+                // Questo blocco nasconde il caricamento INFINITO a prescindere dal successo o fallimento!
+                const loader = document.getElementById('loader');
+                if(loader) loader.classList.add('hidden');
+                
+                const container = document.getElementById('menu-container');
+                if(container) container.classList.remove('hidden');
+                
+                renderCategories();
+                renderMenu();
+                loadGoogleTranslateScript();
             }
-            
-            document.getElementById('loader').classList.add('hidden');
-            document.getElementById('menu-container').classList.remove('hidden');
-            renderCategories();
-            renderMenu();
-            loadGoogleTranslateScript();
         }
 
-        function toggleLangDropdown() { document.getElementById('lang-dropdown').classList.toggle('hidden'); }
+        function toggleLangDropdown() { 
+            const dropdown = document.getElementById('lang-dropdown');
+            if(dropdown) dropdown.classList.toggle('hidden'); 
+        }
 
         function renderCategories() {
             const bar = document.getElementById('category-scroll');
+            if(!bar) return;
             bar.innerHTML = '';
             
-            if (menuItems.length === 0) return; // Niente categorie se non ci sono piatti
+            if (menuItems.length === 0) return;
 
             const labelAll = currentLang === 'it' ? 'Tutti' : 'All';
             const categories = [labelAll, ...new Set(menuItems.map(item => item.category))];
@@ -147,10 +162,11 @@
 
         function renderMenu() {
             const container = document.getElementById('menu-container');
+            if(!container) return;
             container.innerHTML = '';
 
             if (menuItems.length === 0) {
-                container.innerHTML = `<div class="text-center py-20 text-stone-500 font-serif italic tracking-widest text-sm">Nessun piatto disponibile al momento.</div>`;
+                container.innerHTML = `<div class="text-center py-20 text-stone-500 font-serif italic tracking-widest text-sm uppercase">Nessun piatto disponibile al momento.</div>`;
                 return;
             }
 
@@ -192,8 +208,11 @@
         function translateMenu(langCode) {
             currentLang = langCode;
             const flags = { it: '🇮🇹', en: '🇬🇧', fr: '🇫🇷', de: '🇩🇪' };
-            document.getElementById('active-flag').innerText = flags[langCode];
-            document.getElementById('lang-dropdown').classList.add('hidden');
+            const flagElement = document.getElementById('active-flag');
+            const dropdown = document.getElementById('lang-dropdown');
+            
+            if(flagElement) flagElement.innerText = flags[langCode];
+            if(dropdown) dropdown.classList.add('hidden');
 
             try {
                 const googleSelect = document.querySelector('.goog-te-combo');
@@ -214,14 +233,19 @@
         }
 
         function loadGoogleTranslateScript() {
-            const script = document.createElement('script');
-            script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-            document.body.appendChild(script);
+            try {
+                const script = document.createElement('script');
+                script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+                document.body.appendChild(script);
+            } catch(e) {}
         }
 
         window.addEventListener('DOMContentLoaded', init);
         window.addEventListener('click', (e) => {
-            if (!e.target.closest('#lang-dropdown') && !e.target.closest('button')) { document.getElementById('lang-dropdown').classList.add('hidden'); }
+            const dropdown = document.getElementById('lang-dropdown');
+            if (dropdown && !e.target.closest('#lang-dropdown') && !e.target.closest('button')) { 
+                dropdown.classList.add('hidden'); 
+            }
         }, true);
     </script>
 </body>
