@@ -15,27 +15,30 @@
 <body class="min-h-screen">
     <header class="py-16 text-center border-b border-stone-900">
         <h1 class="text-6xl tracking-[0.2em] uppercase notranslate">P E M A</h1>
+        <p class="text-[10px] tracking-[0.3em] uppercase text-stone-500 mt-2 italic">Not exactly a neighborhood kitchen</p>
     </header>
+
     <main class="max-w-3xl mx-auto p-6 w-full" id="menu-container">
-        <div id="loader" class="text-center py-20 italic text-stone-500">Caricamento menù...</div>
+        <div id="loader" class="text-center py-20 italic text-stone-500">Caricamento menù in corso...</div>
     </main>
 
     <script>
         const supabase = window.supabase.createClient("https://cpmianmjcxhputneygsw.supabase.co", "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm");
         
         async function loadMenu() {
-            const { data } = await supabase.from('menu').select('*').eq('available', true).order('category').order('position');
+            // Ordinamento sicuro per categoria
+            const { data, error } = await supabase.from('menu').select('*').eq('available', true).order('category');
+            if (error) { document.getElementById('loader').innerText = "Errore connessione."; return; }
+            
             document.getElementById('loader').style.display = 'none';
-            if (!data) return;
-
-            const grouped = data.reduce((acc, i) => { (acc[i.category] = acc[i.category] || []).push(i); return acc; }, {});
             const container = document.getElementById('menu-container');
+            const grouped = data.reduce((acc, i) => { (acc[i.category] = acc[i.category] || []).push(i); return acc; }, {});
 
             for (const cat in grouped) {
-                if (cat.startsWith('Vini')) {
+                if (cat.includes('Vini')) {
                     container.innerHTML += `
-                        <details class="my-8 border-b border-stone-900 pb-4">
-                            <summary class="text-3xl uppercase tracking-widest cursor-pointer">${cat}</summary>
+                        <details class="my-8 border-b border-stone-900 pb-4 group">
+                            <summary class="text-3xl uppercase tracking-widest cursor-pointer text-gold-500 hover:text-white transition-colors">${cat}</summary>
                             <div class="mt-6 space-y-4">
                                 ${grouped[cat].map(item => `
                                     <div class="flex justify-between items-baseline">
@@ -46,7 +49,7 @@
                             </div>
                         </details>`;
                 } else {
-                    container.innerHTML += `<h2 class="text-3xl tracking-widest uppercase text-center my-12 border-b border-stone-900 pb-4">${cat}</h2>`;
+                    container.innerHTML += `<h2 class="text-3xl tracking-widest uppercase text-center my-12 text-[#d4af37] border-b border-stone-900 pb-4">${cat}</h2>`;
                     grouped[cat].forEach(item => {
                         container.innerHTML += `
                             <div class="mb-8">
