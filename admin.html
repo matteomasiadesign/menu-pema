@@ -162,12 +162,12 @@
         const SUPABASE_URL = "https://cpmianmjcxhputneygsw.supabase.co";
         const SUPABASE_KEY = "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm";
         
-        let supabase;
+        let supabaseClient; // Rinominato per evitare conflitti con la variabile globale Supabase della CDN
         let menuItems = [];
         let idToDelete = null;
 
         try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         } catch (e) {
             console.error("Errore inizializzazione client Supabase.");
         }
@@ -209,10 +209,10 @@
             }
 
             try {
-                if (!supabase) throw new Error("Connessione Supabase assente.");
+                if (!supabaseClient) throw new Error("Connessione Supabase assente.");
 
                 const hashedInput = md5(inputPass);
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('gestione_accessi')
                     .select('password_hash')
                     .eq('id', 1)
@@ -269,9 +269,9 @@
         }
 
         async function fetchMenu() {
-            if (!supabase) return;
+            if (!supabaseClient) return;
             try {
-                const { data, error } = await supabase.from('menu').select('*').order('category', { ascending: true });
+                const { data, error } = await supabaseClient.from('menu').select('*').order('category', { ascending: true });
                 if (!error && data) {
                     menuItems = data;
                 } else {
@@ -325,7 +325,7 @@
 
         async function saveProduct(e) {
             e.preventDefault();
-            if (!supabase) return;
+            if (!supabaseClient) return;
 
             const id = document.getElementById('prod-id').value;
             const payload = {
@@ -338,9 +338,9 @@
 
             let error;
             if (id) { 
-                ({ error } = await supabase.from('menu').update(payload).eq('id', id)); 
+                ({ error } = await supabaseClient.from('menu').update(payload).eq('id', id)); 
             } else { 
-                ({ error } = await supabase.from('menu').insert([payload])); 
+                ({ error } = await supabaseClient.from('menu').insert([payload])); 
             }
 
             if (error) { 
@@ -381,8 +381,8 @@
         }
 
         async function confirmDelete() {
-            if (idToDelete === null || !supabase) return;
-            const { error } = await supabase.from('menu').delete().eq('id', idToDelete);
+            if (idToDelete === null || !supabaseClient) return;
+            const { error } = await supabaseClient.from('menu').delete().eq('id', idToDelete);
             if (error) { 
                 showToast("Impossibile eliminare", false); 
             } else { 
