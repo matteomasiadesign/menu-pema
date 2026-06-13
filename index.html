@@ -47,7 +47,6 @@
     <div class="h-0.5 bg-gradient-to-r from-gold-700 via-gold-500 to-gold-700 w-full sticky top-0 z-50"></div>
     <div id="google_translate_element" class="hidden"></div>
 
-    <!-- Header -->
     <header class="py-12 px-4 text-center border-b border-stone-900 bg-dark-950/80 premium-blur sticky top-0.5 z-40">
         <div class="max-w-3xl mx-auto space-y-3">
             <h1 class="font-serif text-4xl sm:text-5xl tracking-[0.25em] text-gold-500 font-light uppercase notranslate select-none">P E M A</h1>
@@ -59,12 +58,10 @@
         </div>
     </header>
 
-    <!-- Categorie -->
     <div class="border-b border-stone-900 bg-dark-950/90 premium-blur sticky top-[125px] sm:top-[137px] z-30 shadow-2xl">
         <div id="category-scroll" class="max-w-3xl mx-auto px-4 py-3.5 flex gap-6 overflow-x-auto no-scrollbar justify-start md:justify-center"></div>
     </div>
 
-    <!-- Main -->
     <main class="max-w-3xl mx-auto px-4 py-12 flex-1 w-full">
         <div id="loader" class="text-center py-20 text-stone-500 font-serif italic">
             <i class="fa-solid fa-spinner animate-spin text-lg text-gold-500 mb-4 block mx-auto"></i>
@@ -73,7 +70,6 @@
         <div id="menu-container" class="space-y-16 hidden"></div>
     </main>
 
-    <!-- Lingua -->
     <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
         <div id="lang-dropdown" class="hidden bg-dark-900 border border-stone-850 rounded-2xl p-1.5 shadow-2xl premium-blur flex flex-col gap-1 mb-2">
             <button onclick="translateMenu('it')" class="flex items-center gap-3 px-4 py-2.5 hover:bg-stone-900 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all w-full text-left text-stone-300 min-h-[44px]"><span class="text-base">🇮🇹</span> Italiano</button>
@@ -86,7 +82,6 @@
         </button>
     </div>
 
-    <!-- Footer -->
     <footer class="py-12 border-t border-stone-950 text-center text-[9px] text-stone-500 tracking-[0.2em] bg-black uppercase">
         <p class="font-serif italic mb-2 tracking-[0.25em] text-gold-500/70 notranslate">PEMA Bistrot & Fine Dining</p>
         <p>&copy; 2026 • Tutti i diritti riservati</p>
@@ -96,20 +91,24 @@
         const SUPABASE_URL = "https://cpmianmjcxhputneygsw.supabase.co";
         const SUPABASE_KEY = "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm";
         
-        let supabase = null;
+        let supabaseClient = null;
         let menuItems = [];
         let activeCategory = 'Tutti';
         let currentLang = 'it';
 
+        // La funzione di avvio viene chiamata solo quando il documento è completamente caricato
         async function init() {
             try {
-                // Inizializzazione sicura: non blocca la pagina se manca la rete o libreria bloccata
-                if (!window.supabase) {
-                    throw new Error("SDK Supabase non trovato. Disabilita l'AdBlocker.");
+                // Controllo di sicurezza: se Supabase non è stato caricato dal browser, non facciamo crashare lo script!
+                if (typeof window.supabase === 'undefined') {
+                    throw new Error("Libreria Supabase non caricata.");
                 }
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 
-                const { data, error } = await supabase.from('menu').select('*').eq('available', true).order('category', { ascending: true });
+                // Creiamo il client SOLO ORA, dentro un blocco sicuro
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                // Chiamata vera al database
+                const { data, error } = await supabaseClient.from('menu').select('*').eq('available', true).order('category', { ascending: true });
                 if (error) throw error;
                 
                 menuItems = data || [];
@@ -117,12 +116,9 @@
                 console.error("Errore di caricamento Database:", e);
                 menuItems = []; 
             } finally {
-                // Questo blocco nasconde il caricamento INFINITO a prescindere dal successo o fallimento!
-                const loader = document.getElementById('loader');
-                if(loader) loader.classList.add('hidden');
-                
-                const container = document.getElementById('menu-container');
-                if(container) container.classList.remove('hidden');
+                // IL FINALLY ASSICURA CHE IL LOADER SPARISCA SEMPRE, ANCHE SE C'È ERRORE
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('menu-container').classList.remove('hidden');
                 
                 renderCategories();
                 renderMenu();
@@ -165,6 +161,7 @@
             if(!container) return;
             container.innerHTML = '';
 
+            // Niente piatti demo! Messaggio pulito ed elegante se è vuoto
             if (menuItems.length === 0) {
                 container.innerHTML = `<div class="text-center py-20 text-stone-500 font-serif italic tracking-widest text-sm uppercase">Nessun piatto disponibile al momento.</div>`;
                 return;
@@ -240,7 +237,9 @@
             } catch(e) {}
         }
 
+        // Avvio sicuro all'apertura
         window.addEventListener('DOMContentLoaded', init);
+        
         window.addEventListener('click', (e) => {
             const dropdown = document.getElementById('lang-dropdown');
             if (dropdown && !e.target.closest('#lang-dropdown') && !e.target.closest('button')) { 
