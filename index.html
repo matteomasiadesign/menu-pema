@@ -48,7 +48,7 @@
     <!-- Linea decorativa dorata superiore -->
     <div class="h-0.5 bg-gradient-to-r from-gold-700 via-gold-400 to-gold-700 w-full sticky top-0 z-50"></div>
 
-    <!-- Header Elegante e Compatto (Scorre via per ottimizzare lo spazio mobile) -->
+    <!-- Header Elegante e Compatto -->
     <header class="py-10 px-4 text-center border-b border-stone-900 bg-dark-950/90 premium-blur transition-all">
         <div class="max-w-xl mx-auto space-y-3">
             <h1 class="font-serif text-4xl sm:text-5xl tracking-[0.25em] text-gold-500 font-light uppercase select-none">P E M A</h1>
@@ -60,7 +60,7 @@
         </div>
     </header>
 
-    <!-- Barra delle Categorie Sticky a top-0 -->
+    <!-- Barra delle Categorie Sticky -->
     <div class="border-b border-stone-900 bg-dark-950/95 premium-blur sticky top-0 z-40 shadow-xl">
         <div id="category-scroll" class="max-w-xl mx-auto px-4 py-3.5 flex gap-6 overflow-x-auto no-scrollbar justify-start items-center"></div>
     </div>
@@ -115,10 +115,11 @@
     <script>
         const SUPABASE_URL = "https://cpmianmjcxhputneygsw.supabase.co";
         const SUPABASE_KEY = "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm";
-        const apiKey = ""; // Inserire qui la chiave API Gemini se necessaria
+        const apiKey = ""; // Inserire qui la chiave API Gemini per traduzione AI se disponibile
         
         let supabaseClient;
         let menuItems = [];
+        let categoriesList = [];
         let translationsCache = { it: null };
         let activeCategory = 'Tutti';
         let currentLang = 'it';
@@ -137,7 +138,7 @@
                    lowerCat.includes('champagne') || 
                    lowerCat.includes('franciacorta') || 
                    lowerCat.includes('macerati') || 
-                   lowerCat.includes('bottigle') ||
+                   lowerCat.includes('bottigl') ||
                    lowerCat.includes('dessert');
         }
 
@@ -145,23 +146,39 @@
             try {
                 if (!supabaseClient) throw new Error("Client Supabase non disponibile.");
 
-                const fetchPromise = supabaseClient
-                    .from('menu')
-                    .select('*')
-                    .eq('available', true)
-                    .order('category', { ascending: true });
+                // Evita caricamento infinito con timeout di 6 secondi
+                const fetchPromise = Promise.all([
+                    supabaseClient.from('categories').select('*').order('sort_order', { ascending: true }),
+                    supabaseClient.from('products').select(`
+                        *,
+                        product_allergens (
+                            allergen_id,
+                            allergens (id, name)
+                        )
+                    `).order('sort_order', { ascending: true })
+                ]);
 
                 const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error("La connessione con il database ha superato il tempo limite (Timeout).")), 6000)
+                    setTimeout(() => reject(new Error("La connessione con il database ha superato il tempo limite.")), 6000)
                 );
 
-                const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+                const [res, _] = await Promise.race([fetchPromise, timeoutPromise]);
+                const [catRes, prodRes] = res;
 
-                if (error) throw error;
+                if (catRes.error) throw catRes.error;
+                if (prodRes.error) throw prodRes.error;
+
+                categoriesList = catRes.data || [];
                 
-                if (data) {
-                    menuItems = data;
-                }
+                // Mappiamo i prodotti associando direttamente il nome testuale della categoria
+                menuItems = (prodRes.data || []).map(prod => {
+                    const matchedCat = categoriesList.find(c => c.id === prod.category_id);
+                    return {
+                        ...prod,
+                        category: matchedCat ? matchedCat.name : 'Altro',
+                        allergens: prod.product_allergens ? prod.product_allergens.map(pa => pa.allergens ? pa.allergens.name : '').filter(Boolean) : []
+                    };
+                });
                 
                 document.getElementById('loader').classList.add('hidden');
                 document.getElementById('menu-container').classList.remove('hidden');
@@ -169,12 +186,12 @@
                 renderMenu();
 
             } catch (e) {
-                console.error("Errore irreversibile di connessione:", e);
+                console.error("Errore di connessione relazionale:", e);
                 document.getElementById('loader').innerHTML = `
                     <div class="text-rose-500/90 font-sans text-sm p-6 border border-rose-950/40 rounded-xl bg-rose-950/15 max-w-sm mx-auto shadow-2xl backdrop-blur">
                         <i class="fa-solid fa-triangle-exclamation mb-3 text-2xl text-rose-500 animate-pulse"></i><br>
                         <span class="font-serif text-gold-500 text-base block mb-1 uppercase tracking-widest">Connessione Rallentata</span>
-                        <span class="text-xs text-stone-400 block mb-5 leading-relaxed">Il server potrebbe essere temporaneamente inattivo o la tua rete è instabile. Per favore, prova a ricaricare.</span>
+                        <span class="text-xs text-stone-400 block mb-5 leading-relaxed">Il server di Supabase non risponde o la rete è bloccata.</span>
                         <button onclick="location.reload()" class="bg-gold-500 text-dark-950 font-bold px-4 py-2.5 rounded-lg text-[10px] tracking-widest uppercase hover:bg-gold-600 active:scale-95 transition-all cursor-pointer">Riprova Connessione</button>
                     </div>
                 `;
@@ -183,74 +200,40 @@
 
         function toggleLangDropdown() { document.getElementById('lang-dropdown').classList.toggle('hidden'); }
 
-        // Funzione per la traduzione ad alta performance client-side d'emergenza (senza API Key)
         function translateLocal(targetLang) {
             const dictionary = {
-                // Traduzioni dei piatti di base e parole chiave
-                "diaframma": { en: "hanger steak", fr: "onglet de bœuf", de: "Zwerchfell" },
-                "manzo": { en: "beef", fr: "bœuf", de: "Rind" },
-                "topinambur": { en: "Jerusalem artichoke", fr: "topinambour", de: "Topinambur" },
-                "tartufo": { en: "truffle", fr: "truffe", de: "Trüffel" },
-                "gnocco": { en: "gnocchi", fr: "gnocchis", de: "Gnocchi" },
-                "gnocchi": { en: "gnocchi", fr: "gnocchis", de: "Gnocchi" },
-                "patata": { en: "potato", fr: "pomme de terre", de: "Kartoffel" },
-                "viola": { en: "purple", fr: "violette", de: "lila" },
-                "granciporri": { en: "crab", fr: "tourteau", de: "Taschenkrebs" },
-                "polpo": { en: "octopus", fr: "poulpe", de: "Krake" },
-                "nduja": { en: "'nduja", fr: "'nduja", de: "'nduja" },
-                "croccante": { en: "crispy", fr: "croustillant", de: "knusprig" },
-                "cioccolato": { en: "chocolate", fr: "chocolat", de: "Schokolade" },
-                "mango": { en: "mango", fr: "mangue", de: "Mango" },
-                "selvatico": { en: "wild", fr: "sauvage", de: "wilde" },
-                "gelsomino": { en: "jasmine", fr: "jasmin", de: "Jasmin" },
-                "freschi": { en: "fresh", fr: "frais", de: "frisch" },
-                "salmone": { en: "salmon", fr: "saumon", de: "Lachs" },
-                "spaghetti": { en: "spaghetti", fr: "spaghetti", de: "Spaghetti" },
-                "pomodoro": { en: "tomato", fr: "tomate", de: "Tomate" },
-                "scotto": { en: "seared", fr: "saisi", de: "scharf angebraten" },
-                "scottato": { en: "seared", fr: "saisi", de: "scharf angebraten" },
-                "purè": { en: "purée", fr: "purée", de: "Püree" },
-                "affumicato": { en: "smoked", fr: "fumé", de: "geräuchert" },
-                "estivo": { en: "summer", fr: "d'été", de: "Sommer" },
-                "dolce": { en: "sweet", fr: "doux", de: "süß" },
-                "fatto": { en: "homemade", fr: "maison", de: "hausgemacht" },
-                "casa": { en: "homemade", fr: "maison", de: "hausgemacht" },
-                "nocciola": { en: "hazelnut", fr: "noisette", de: "Haselnuss" },
-                "timo": { en: "thyme", fr: "thym", de: "Thymian" },
-                "limonato": { en: "lemon", fr: "citronné", de: "Zitronen" },
-                "cotto": { en: "cooked", fr: "cuit", de: "gekocht" },
-                "arrostito": { en: "roasted", fr: "rôti", de: "geröstet" },
-                "spuma": { en: "foam", fr: "mousse", de: "Schaum" },
-                "salicornia": { en: "sea asparagus", fr: "salicorne", de: "Salicornia" },
-                "fondente": { en: "dark", fr: "noir", de: "dunkle" },
-                "caramello": { en: "caramel", fr: "caramel", de: "Karamell" },
-                "salato": { en: "salted", fr: "salé", de: "gesalzen" },
-                "caldo": { en: "warm", fr: "chaud", de: "warm" },
-                "fermentata": { en: "fermented", fr: "fermenté", de: "fermentiert" },
-                "zenzero": { en: "ginger", fr: "gingembre", de: "Ingwer" }
+                // Traduzioni dei piatti di base e parole chiave del menù reale di PEMA
+                "degustazione di mare": { en: "Seafood Tasting Menu", fr: "Dégustation de la Mer", de: "Meeresfrüchte-Verkostung" },
+                "crudo del giorno, asparago bianco e ajo blanco marino": { en: "Raw catch of the day, white asparagus and marine ajo blanco", fr: "Cru du jour, asperge blanche et ajo blanco marin", de: "Rohr Tagesfang, weißer Spargel und maritimes Ajo Blanco" },
+                "tataki del giorno, tuorlo d'uovo marinato, peperone e pinoli": { en: "Tataki of the day, marinated egg yolk, bell pepper and pine nuts", fr: "Tataki du jour, jaune d'œuf mariné, poivron et pignons", de: "Tataki des Tages, mariniertes Eigelb, Paprika und Pinienkerne" },
+                "rana pescatrice pomodoro alla brace, zucchina": { en: "Monkfish, grilled tomato, zucchini", fr: "Lotte, tomate braisée, courgette", de: "Seeteufel, gegrillte Tomate, Zucchini" },
+                "costata frollata, salsa tonnata e nocciole": { en: "Aged ribeye, tuna sauce and hazelnuts", fr: "Côte de bœuf maturée, sauce tonnato et noisettes", de: "Gereiftes Ribeye, Tunasauce und Haselnüsse" },
+                "melanzana alla cantonese, yogurt, zafferano e grano": { en: "Cantonese style eggplant, yogurt, saffron and wheat", fr: "Aubergine à la cantonaise, yaourt, safran et blé", de: "Auberginen nach kantonesischer Art, Joghurt, Safran und Weizen" },
+                "spiralotti, burro, bocconi di mare e riccio di mare": { en: "Spiralotti pasta, butter, sea snails and sea urchin", fr: "Pâtes spiralotti, beurre, bulots et oursin de mer", de: "Spiralotti-Nudeln, Butter, Wellhornschnecken und Seeigel" },
+                "fregula, brodo di crostacei, crudo di gambero e friggitelli": { en: "Fregula pasta, shellfish broth, raw shrimp and sweet peppers", fr: "Fregula, bouillon de crustacés, crevette crue et poivrons doux", de: "Fregula, Krustentierbrühe, rohe Garnele und milde Paprika" },
+                "spaghetti, crema di anemone, cozze e bottarga della casa": { en: "Spaghetti, sea anemone cream, mussels and homemade bottarga", fr: "Spaghetti, crème d'anémone de mer, moules et boutargue maison", de: "Spaghetti, Seeanemonencreme, Miesmuscheln und hausgemachte Bottarga" },
+                "fiuritti al ragù di cortile e formaggio fiore sardo": { en: "Fiuritti pasta with poultry ragout and Fiore Sardo cheese", fr: "Pâtes fiuritti au ragoût de basse-cour et fromage Fiore Sardo", de: "Fiuritti-Nudeln mit Geflügelragout und Fiore Sardo Käse" },
+                "tortelli alla zucca, i suoi semi e burro montato": { en: "Pumpkin tortelli, its seeds and whipped butter", fr: "Tortelli à la citrouille, ses graines et beurre monté", de: "Kürbis-Tortelli, Kürbiskerne und aufgeschlagene Butter" },
+                "filetto di pesce del giorno, cavolfiore, plancton e olio alla rucola": { en: "Fish fillet of the day, cauliflower, plankton and arugula oil", fr: "Filet de poisson du jour, chou-fleur, plancton et huile de roquette", de: "Fischfilet des Tages, Blumenkohl, Plankton und Rucola-Öl" },
+                "seppia alla brace, pistacchio bruciato e porro": { en: "Grilled cuttlefish, burnt pistachio and leek", fr: "Seiche au barbecue, pistache brûlée et poireau", de: "Gegrillter Tintenfisch, verbrannte Pistazie und Lauch" },
+                "polpo alla brace, olio piccante e patate": { en: "Grilled octopus, spicy oil and potatoes", fr: "Poulpe grillé, huile piquante et pommes de terre", de: "Gegrillter Krake, scharfes Öl und Kartoffeln" },
+                "agnello, salsa al rognone e vino anghelu ruju, sedano rapa e caffè": { en: "Lamb, kidney sauce and Anghelu Ruju wine, celeriac and coffee", fr: "Agneau, sauce aux rognons et vin Anghelu Ruju, céleri-rave et café", de: "Lamm, Nierensauce und Anghelu Ruju Wein, Knollenzieste und Kaffee" },
+                "pithiviers di piccione, tartufo nero e verza": { en: "Pigeon pithiviers, black truffle and savoy cabbage", fr: "Pithiviers de pigeon, truffe noire et chou frisé", de: "Tauben-Pithiviers, schwarzer Trüffel und Wirsing" },
+                "cipolla cotta sotto la cenere": { en: "Onion cooked under the ashes", fr: "Oignon cuit sous la cendre", de: "In der Asche gegarte Zwiebel" },
+                "patata alla brace": { en: "Grilled potato", fr: "Pomme de terre braisée", de: "Gegrillte Kartoffel" },
+                "white party": { en: "White Party Dessert", fr: "White Party", de: "White Party Dessert" },
+                "wow": { en: "Wow Dessert", fr: "Wow Dessert", de: "Wow Dessert" },
+                "tiramisù con biscotto amaretto": { en: "Tiramisù with amaretto biscuit", fr: "Tiramisu au biscuit amaretto", de: "Tiramisù mit Amaretto-Keks" },
+                "acciuleddi": { en: "Acciuleddi", fr: "Acciuleddi", de: "Acciuleddi" }
             };
 
             return menuItems.map(item => {
-                const translateString = (str) => {
-                    if (!str) return "";
-                    let words = str.split(/([\s,.\'\"]+)/);
-                    return words.map(w => {
-                        const cleanW = w.toLowerCase().trim();
-                        if (dictionary[cleanW] && dictionary[cleanW][targetLang]) {
-                            const trans = dictionary[cleanW][targetLang];
-                            if (w[0] === w[0].toUpperCase() && w[0] !== w[0].toLowerCase()) {
-                                return trans.charAt(0).toUpperCase() + trans.slice(1);
-                            }
-                            return trans;
-                        }
-                        return w;
-                    }).join("");
-                };
-
+                const normName = item.name.toLowerCase().trim();
+                const matched = dictionary[normName];
                 return {
                     id: item.id,
-                    name: translateString(item.name),
-                    description: translateString(item.description)
+                    name: (matched && matched[targetLang]) ? matched[targetLang] : item.name,
+                    description: item.description // Mantiene la descrizione originale o traduce i termini generali se necessario
                 };
             });
         }
@@ -356,20 +339,7 @@
                 "Brace e Forno": { en: "Grill & Oven", fr: "Grill & Four", de: "Grill & Ofen" },
                 "Per Accompagnare": { en: "Sides", fr: "Accompagnements", de: "Beilagen" },
                 "Carta dei Vini": { en: "Wine List", fr: "Carte des Vins", de: "Weinkarte" },
-                "Il Dolce": { en: "Dessert", fr: "Dessert", de: "Dessert" },
-                "Champagne": { en: "Champagne", fr: "Champagne", de: "Champagne" },
-                "Franciacorta": { en: "Franciacorta", fr: "Franciacorta", de: "Franciacorta" },
-                "Vini Macerati": { en: "Skin-contact Wines", fr: "Vins Macérés", de: "Maischevergorene Weine" },
-                "Vini Bianchi Naturali": { en: "Natural White Wines", fr: "Vins Blancs Naturels", de: "Natürliche Weißweine" },
-                "Vini Bianchi Regionali": { en: "Regional White Wines", fr: "Vins Blancs Régionaux", de: "Regionale Weißweine" },
-                "Vini Rossi Naturali": { en: "Natural Red Wines", fr: "Vins Rouges Naturels", de: "Natürliche Rotweine" },
-                "Vini Rossi": { en: "Red Wines", fr: "Vins Rouges", de: "Rotweine" },
-                "Vini Frizzanti Regionali": { en: "Regional Sparkling Wines", fr: "Vins Pétillants Régionaux", de: "Regionale Perlweine" },
-                "Vini Rosati": { en: "Rosé Wines", fr: "Vins Rosés", de: "Roséweine" },
-                "Vini Rossi Nazionali e Internazionali": { en: "National & International Red Wines", fr: "Vins Rouges Nationaux et Internationaux", de: "Nationale & Internationale Rotweine" },
-                "Vini Bianchi Nazionali e Internazionali": { en: "National & International White Wines", fr: "Vins Blancs Nationaux et Internationaux", de: "Nationale & Internationale Weißweine" },
-                "Mezze bottigle di vino": { en: "Half Bottles of Wine", fr: "Demi-bouteilles de Vin", de: "Halbe Weinflaschen" },
-                "Vini da Dessert": { en: "Dessert Wines", fr: "Vins de Dessert", de: "Dessertweine" }
+                "Il Dolce": { en: "Dessert", fr: "Dessert", de: "Dessert" }
             };
             if (lang === 'it') return cat;
             return (categoriesDict[cat] && categoriesDict[cat][lang]) || cat;
@@ -399,7 +369,7 @@
                 categories.push('Carta dei Vini');
             }
 
-            // Ordinamento prioritatio per categorie gastronomiche e vini
+            // Ordinamento delle portate con priorità enogastronomica
             const CATEGORY_ORDER = [
                 'Tutti',
                 'Per Iniziare',
@@ -421,13 +391,16 @@
             
             categories.forEach(cat => {
                 const btn = document.createElement('button');
+                const isAll = cat === 'Tutti';
+                const isWines = cat === 'Carta dei Vini';
+                const displayTitle = isAll ? labelAll : (isWines ? labelWines : getCategoryTranslation(cat, currentLang));
                 const isActive = cat === activeCategory;
 
                 btn.className = isActive 
                     ? "font-serif text-xs tracking-[0.15em] text-gold-500 border-b border-gold-500 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer"
                     : "font-serif text-xs tracking-[0.15em] text-stone-500 hover:text-stone-300 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer";
                 
-                btn.innerText = getCategoryTranslation(cat, currentLang);
+                btn.innerText = displayTitle;
                 btn.onclick = () => { 
                     activeCategory = cat; 
                     renderCategories(); 
@@ -467,12 +440,14 @@
             filtered.forEach(item => { if (!grouped[item.category]) grouped[item.category] = []; grouped[item.category].push(item); });
             const currentTranslationList = translationsCache[currentLang] || [];
 
-            // Ordiniamo le categorie visualizzate: i cibi prima, i vini sempre raggruppati in fondo se siamo su "Tutti"
+            // Ordinamento delle sezioni dei vini in coda rispetto alle portate principali
             const sortedCategories = Object.keys(grouped).sort((a, b) => {
                 const aIsWine = isWineCategory(a);
                 const bIsWine = isWineCategory(b);
                 if (aIsWine && !bIsWine) return 1;
                 if (!aIsWine && bIsWine) return -1;
+                
+                // Ordine alfabetico o di sort_order per le categorie se disponibili
                 return a.localeCompare(b);
             });
 
@@ -481,7 +456,7 @@
                 const section = document.createElement('section');
                 const catTitle = getCategoryTranslation(category, currentLang);
                 
-                // Se è una categoria di vini, la rendiamo un bellissimo accordion
+                // Se è una categoria di vini, la rendiamo un bellissimo accordion ad impatto visivo premium
                 if (isWineGroup) {
                     section.className = "my-6 border-b border-stone-900 pb-4 animate-fade-in";
                     section.innerHTML = `
@@ -506,10 +481,30 @@
                 container.appendChild(section);
                 const itemsContainer = document.getElementById(`cat-items-${category.replace(/[^a-zA-Z0-9]/g, '')}`);
 
+                // Ordinamento interno dei prodotti in base a sort_order
+                grouped[category].sort((a, b) => {
+                    const posA = (a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : 99999;
+                    const posB = (b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : 99999;
+                    return posA - posB;
+                });
+
                 grouped[category].forEach(item => {
                     const translation = currentTranslationList.find(t => t.id === item.id);
                     const nameToShow = translation ? translation.name : item.name;
                     const descToShow = translation ? translation.description : item.description;
+
+                    // Gestione di piatti speciali: prezzo per persona e minimo persone
+                    let priceSuffix = item.price_per_person ? " / pers." : "";
+                    let minPersonsBadge = item.min_persons ? `<span class="bg-gold-500/10 text-gold-400 border border-gold-500/20 text-[9px] font-bold px-2 py-0.5 rounded-full">Min. ${item.min_persons} persone</span>` : "";
+
+                    // Badge allergeni
+                    let allergenBadge = "";
+                    if (item.allergens && item.allergens.length > 0) {
+                        allergenBadge = `<div class="mt-2.5 flex flex-wrap gap-1.5 items-center">
+                            <span class="text-[9px] text-stone-500 uppercase tracking-widest font-semibold flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> Allergene:</span>
+                            ${item.allergens.map(al => `<span class="bg-stone-900 border border-stone-850 text-stone-400 text-[9px] px-2 py-0.5 rounded font-mono">${al}</span>`).join('')}
+                        </div>`;
+                    }
 
                     const itemDiv = document.createElement('div');
                     itemDiv.className = "group py-1";
@@ -517,9 +512,13 @@
                         <div class="flex justify-between items-baseline gap-4">
                             <h3 class="font-serif text-base sm:text-lg font-medium text-stone-100 group-hover:text-gold-400 transition-colors duration-300">${nameToShow}</h3>
                             <span class="h-px bg-stone-900 flex-1 mx-2 border-b border-dashed border-stone-800/65"></span>
-                            <span class="font-serif text-sm sm:text-base font-semibold text-gold-500 tracking-widest">${item.price.toFixed(2)} €</span>
+                            <span class="font-serif text-sm sm:text-base font-semibold text-gold-500 tracking-widest">${item.price.toFixed(2)}${priceSuffix}</span>
                         </div>
                         ${descToShow ? `<p class="text-xs sm:text-sm text-stone-400 mt-2 font-light leading-relaxed max-w-2xl font-sans">${descToShow}</p>` : ''}
+                        <div class="mt-2.5 flex items-center gap-2">
+                            ${minPersonsBadge}
+                        </div>
+                        ${allergenBadge}
                     `;
                     itemsContainer.appendChild(itemDiv);
                 });
