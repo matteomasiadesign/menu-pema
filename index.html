@@ -256,13 +256,11 @@
             try {
                 if (!supabaseClient) throw new Error("Client Supabase non disponibile.");
 
-                // Recuperiamo le categorie
                 const catFetch = supabaseClient
                     .from('categories')
                     .select('*')
                     .order('sort_order', { ascending: true });
 
-                // Recuperiamo i prodotti e i relativi allergeni relazionati
                 const prodFetch = supabaseClient
                     .from('products')
                     .select(`
@@ -299,6 +297,7 @@
                         min_persons: prod.min_persons,
                         price_per_person: prod.price_per_person,
                         category: matchedCat ? matchedCat.name : 'Altro',
+                        available: prod.available !== false, // Default true se non esplicitamente nullo/falso
                         allergens: prod.product_allergens ? prod.product_allergens.map(pa => pa.allergens ? pa.allergens.name : '').filter(Boolean) : []
                     };
                 });
@@ -337,7 +336,7 @@
                 "minimo 2 porzioni, il prezzo indicato si intende a persona": { en: "minimum 2 portions, price per person", fr: "minimum 2 portions, le prix indiqué est par personne", de: "Mindestens 2 Portionen, der angegebene Preis gilt pro Person" },
                 "spaghetti, crema di anemone, cozze e bottarga della casa": { en: "Spaghetti, sea anemone cream, mussels and homemade bottarga", fr: "Spaghetti, crème d'anémone de mer, moules et boutargue maison", de: "Spaghetti, Seeanemonencreme, Miesmuscheln und hausgemachte Bottarga" },
                 "fiuritti al ragù di cortile e formaggio fiore sardo": { en: "Fiuritti pasta with poultry ragout and Fiore Sardo cheese", fr: "Pâtes fiuritti au ragoût de basse-cour et fromage Fiore Sardo", de: "Fiuritti-Nudeln mit Geflügelragout und Fiore Sardo Käse" },
-                "tortelli alla zucca, i suoi semi e burro montato": { en: "Pumpkin tortelli, its seeds and whipped butter", fr: "Tortelli à la citrouille, ses graines et beurre monté", de: "Kürbis-Tortelli, Kürbiskerne und aufgeschlagene Butter" },
+                "tortelli alla zucca, i suoi semi e burro montato": { en: "Pumpkin tortelli, its seeds and whipped butter", fr: "Tortelli à la citrouille, ses graines et beurre monté", de: "Kompressor Tortelli, Kürbiskerne und aufgeschlagene Butter" },
                 "filetto di pesce del giorno, cavolfiore, plancton e olio alla rucola": { en: "Fish fillet of the day, cauliflower, plankton and arugula oil", fr: "Filet de poisson du jour, chou-fleur, plancton et huile de roquette", de: "Fischfilet des Tages, Blumenkohl, Plankton und Rucola-Öl" },
                 "seppia alla brace, pistacchio bruciato e porro": { en: "Grilled cuttlefish, burnt pistachio and leek", fr: "Seiche au barbecue, pistache brûlée et poireau", de: "Gegrillter Tintenfisch, verbrannte Pistazie und Lauch" },
                 "polpo alla brace, olio piccante e patate": { en: "Grilled octopus, spicy oil and potatoes", fr: "Poulpe grillé, huile piquante et pommes de terre", de: "Gegrillte Krake, scharfes Öl und Kartoffeln" },
@@ -581,11 +580,11 @@
 
             let filtered = [];
             if (activeCategory === 'Tutti') {
-                filtered = menuItems;
+                filtered = menuItems.filter(i => i.available);
             } else if (activeCategory === 'Carta dei Vini') {
-                filtered = menuItems.filter(i => isWineCategory(i.category));
+                filtered = menuItems.filter(i => isWineCategory(i.category) && i.available);
             } else {
-                filtered = menuItems.filter(i => i.category === activeCategory);
+                filtered = menuItems.filter(i => i.category === activeCategory && i.available);
             }
             
             if (filtered.length === 0) {
