@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PEMA - Menu Digitale</title>
+    <title>PEMA - Gestione Menu</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- MD5 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -21,76 +21,132 @@
                 extend: {
                     colors: {
                         gold: { 500: '#C59B27', 700: '#765D17' },
-                        dark: { 950: '#050505', 900: '#0A0A0A', 850: '#111111' }
+                        dark: { 950: '#050505', 900: '#0A0A0A', 850: '#111111', 800: '#181818' }
                     },
-                    fontFamily: {
-                        serif: ['Cormorant Garamond', 'serif'],
-                        sans: ['Inter', 'sans-serif'],
-                    }
+                    fontFamily: { serif: ['Cormorant Garamond', 'serif'], sans: ['Inter', 'sans-serif'] }
                 }
             }
         }
     </script>
-    
-    <style>
-        html { scroll-behavior: smooth; background-color: #050505; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .goog-te-banner-frame { display: none !important; }
-        body { top: 0px !important; }
-        .skiptranslate { display: none !important; }
-        .premium-blur { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-    </style>
 </head>
-<body class="bg-dark-950 text-stone-300 font-sans min-h-screen flex flex-col selection:bg-gold-500 selection:text-dark-950">
+<body class="bg-dark-950 text-stone-200 font-sans min-h-screen flex flex-col selection:bg-gold-500 selection:text-dark-950">
 
-    <div class="h-0.5 bg-gradient-to-r from-gold-700 via-gold-500 to-gold-700 w-full sticky top-0 z-50"></div>
-    <div id="google_translate_element" class="hidden"></div>
-
-    <!-- Header -->
-    <header class="py-12 px-4 text-center border-b border-stone-900 bg-dark-950/80 premium-blur sticky top-0.5 z-40">
-        <div class="max-w-3xl mx-auto space-y-3">
-            <h1 class="font-serif text-4xl sm:text-5xl tracking-[0.25em] text-gold-500 font-light uppercase notranslate select-none">P E M A</h1>
-            <div class="flex items-center justify-center gap-2">
-                <span class="h-px w-6 bg-gold-700/50"></span>
-                <p id="tagline-text" class="font-serif text-[10px] sm:text-xs tracking-[0.3em] text-stone-400 uppercase italic notranslate">Not exactly a neighborhood kitchen</p>
-                <span class="h-px w-6 bg-gold-700/50"></span>
+    <!-- Login -->
+    <div id="login-container" class="fixed inset-0 bg-dark-950 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
+        <div class="bg-dark-900 rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-stone-900 text-center">
+            <h1 class="font-serif text-3xl tracking-[0.2em] text-gold-500 font-light uppercase mb-1">P E M A</h1>
+            <p class="font-serif text-[9px] tracking-[0.35em] text-stone-500 uppercase mb-8 italic">Pannello Amministrativo</p>
+            
+            <div class="space-y-5 text-left">
+                <div>
+                    <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2.5">Password di Accesso</label>
+                    <div class="relative">
+                        <input type="password" id="admin-pass" placeholder="Password" class="w-full p-4 pr-12 bg-dark-850 border border-stone-800 rounded-xl outline-none text-stone-100 text-sm focus:border-gold-500 transition-colors">
+                        <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-stone-500 hover:text-stone-300 focus:outline-none min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer z-10">
+                            <i id="eye-icon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="login-error" class="hidden text-xs text-rose-400 font-medium bg-rose-950/20 p-3.5 rounded-xl border border-rose-900/30 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation"></i> <span id="error-msg-text">Errore.</span>
+                </div>
+                <button onclick="login()" id="login-btn" class="w-full bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-all cursor-pointer text-xs tracking-widest uppercase flex items-center justify-center gap-2 min-h-[48px]">
+                    <span>Entra nel Gestionale</span>
+                </button>
             </div>
         </div>
-    </header>
-
-    <!-- Categorie -->
-    <div class="border-b border-stone-900 bg-dark-950/90 premium-blur sticky top-[125px] sm:top-[137px] z-30 shadow-2xl">
-        <div id="category-scroll" class="max-w-3xl mx-auto px-4 py-3.5 flex gap-6 overflow-x-auto no-scrollbar justify-start md:justify-center"></div>
     </div>
 
-    <!-- Main -->
-    <main class="max-w-3xl mx-auto px-4 py-12 flex-1 w-full">
-        <div id="loader" class="text-center py-20 text-stone-500 font-serif italic">
-            <i class="fa-solid fa-spinner animate-spin text-lg text-gold-500 mb-4 block mx-auto"></i>
-            <span id="loading-text" class="tracking-widest uppercase text-[9px]">Caricamento menu...</span>
-        </div>
-        <div id="menu-container" class="space-y-16 hidden"></div>
-    </main>
+    <!-- Dashboard -->
+    <div id="dashboard" class="hidden flex-1 flex flex-col">
+        <header class="bg-dark-900 border-b border-stone-900 py-6 px-4 sticky top-0 z-40">
+            <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="text-center sm:text-left">
+                    <h1 class="font-serif text-2xl tracking-[0.2em] text-gold-500 font-light uppercase">PEMA • Admin</h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="logout()" class="text-stone-400 hover:text-stone-100 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer min-h-[44px]">
+                        Disconnetti <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
 
-    <!-- Lingua -->
-    <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
-        <div id="lang-dropdown" class="hidden bg-dark-900 border border-stone-850 rounded-2xl p-1.5 shadow-2xl premium-blur flex flex-col gap-1 mb-2">
-            <button onclick="translateMenu('it')" class="flex items-center gap-3 px-4 py-2.5 hover:bg-stone-900 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all w-full text-left text-stone-300 min-h-[44px]"><span class="text-base">🇮🇹</span> Italiano</button>
-            <button onclick="translateMenu('en')" class="flex items-center gap-3 px-4 py-2.5 hover:bg-stone-900 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all w-full text-left text-stone-300 min-h-[44px]"><span class="text-base">🇬🇧</span> English</button>
-            <button onclick="translateMenu('fr')" class="flex items-center gap-3 px-4 py-2.5 hover:bg-stone-900 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all w-full text-left text-stone-300 min-h-[44px]"><span class="text-base">🇫🇷</span> Français</button>
-            <button onclick="translateMenu('de')" class="flex items-center gap-3 px-4 py-2.5 hover:bg-stone-900 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all w-full text-left text-stone-300 min-h-[44px]"><span class="text-base">🇩🇪</span> Deutsch</button>
-        </div>
-        <button onclick="toggleLangDropdown()" class="w-14 h-14 bg-dark-900 hover:bg-dark-850 border border-gold-500/30 hover:border-gold-500 text-white rounded-full flex items-center justify-center text-2xl shadow-2xl transition-all duration-300 active:scale-95 cursor-pointer min-h-[44px] min-w-[44px]">
-            <span id="active-flag">🇮🇹</span>
-        </button>
+        <main class="max-w-6xl mx-auto px-4 py-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
+            <!-- Form -->
+            <div class="lg:col-span-4">
+                <div class="bg-dark-900 p-6 rounded-2xl border border-stone-900 sticky top-24">
+                    <h2 id="form-title" class="font-serif text-lg font-bold text-gold-500 mb-6 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fa-solid fa-plus-circle"></i> Aggiungi Prodotto
+                    </h2>
+                    <form id="product-form" onsubmit="saveProduct(event)" class="space-y-4">
+                        <input type="hidden" id="prod-id">
+                        <div>
+                            <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Nome Piatto *</label>
+                            <input type="text" id="prod-name" required class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Categoria *</label>
+                                <input type="text" id="prod-category" required class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Prezzo (€) *</label>
+                                <input type="number" id="prod-price" step="0.01" required class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Descrizione / Ingredienti</label>
+                            <textarea id="prod-description" rows="4" class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all resize-none font-sans"></textarea>
+                        </div>
+                        <div class="flex items-center gap-2.5 pt-2">
+                            <input type="checkbox" id="prod-available" checked class="w-5 h-5 accent-gold-500 bg-dark-850 border-stone-850 rounded-sm">
+                            <label for="prod-available" class="text-xs font-bold text-stone-400 uppercase tracking-widest">Disponibile nel menu</label>
+                        </div>
+                        <div class="flex gap-2 pt-4 border-t border-stone-900">
+                            <button type="submit" class="flex-1 bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-colors text-xs tracking-widest uppercase cursor-pointer min-h-[44px]">Salva</button>
+                            <button type="button" id="cancel-btn" onclick="resetForm()" class="hidden bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-4 px-4 rounded-xl transition-colors text-xs tracking-widest uppercase cursor-pointer min-h-[44px]">Annulla</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Elenco -->
+            <div class="lg:col-span-8 space-y-4">
+                <div class="bg-dark-900 rounded-2xl border border-stone-900 overflow-hidden shadow-2xl">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[500px]">
+                            <thead>
+                                <tr class="border-b border-stone-900 text-[10px] font-bold text-stone-500 uppercase tracking-widest bg-black/40">
+                                    <th class="p-4">Piatto</th>
+                                    <th class="p-4">Categoria</th>
+                                    <th class="p-4">Prezzo</th>
+                                    <th class="p-4 text-right">Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body" class="divide-y divide-stone-900/60 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <!-- Footer -->
-    <footer class="py-12 border-t border-stone-950 text-center text-[9px] text-stone-500 tracking-[0.2em] bg-black uppercase">
-        <p class="font-serif italic mb-2 tracking-[0.25em] text-gold-500/70 notranslate">PEMA Bistrot & Fine Dining</p>
-        <p>&copy; 2026 • Tutti i diritti riservati</p>
-    </footer>
+    <!-- Modale Cancellazione -->
+    <div id="confirm-delete-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-dark-900 rounded-2xl max-w-sm w-full p-8 border border-stone-900" id="delete-modal-content">
+            <h3 class="font-serif text-xl font-bold text-stone-100 uppercase tracking-widest">Eliminare?</h3>
+            <div class="flex gap-4 mt-8">
+                <button onclick="closeDeleteModal()" class="flex-1 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-3.5 rounded-xl text-xs uppercase cursor-pointer min-h-[44px]">Annulla</button>
+                <button id="confirm-delete-btn" class="flex-1 bg-rose-700 hover:bg-rose-800 text-white font-bold py-3.5 rounded-xl text-xs uppercase cursor-pointer min-h-[44px]">Elimina</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-stone-900 text-stone-100 px-6 py-4 rounded-xl shadow-2xl border border-stone-800 flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+        <span id="toast-message" class="text-xs font-semibold uppercase tracking-widest"></span>
+    </div>
 
     <script>
         const SUPABASE_URL = "https://cpmianmjcxhputneygsw.supabase.co";
@@ -98,155 +154,147 @@
         
         let supabase = null;
         let menuItems = [];
-        let activeCategory = 'Tutti';
-        let currentLang = 'it';
+        let idToDelete = null;
 
-        async function init() {
-            try {
-                // Inizializzazione sicura: non blocca la pagina se manca la rete o libreria bloccata
-                if (!window.supabase) {
-                    throw new Error("SDK Supabase non trovato. Disabilita l'AdBlocker.");
-                }
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                
-                const { data, error } = await supabase.from('menu').select('*').eq('available', true).order('category', { ascending: true });
-                if (error) throw error;
-                
-                menuItems = data || [];
-            } catch (e) {
-                console.error("Errore di caricamento Database:", e);
-                menuItems = []; 
-            } finally {
-                // Questo blocco nasconde il caricamento INFINITO a prescindere dal successo o fallimento!
-                const loader = document.getElementById('loader');
-                if(loader) loader.classList.add('hidden');
-                
-                const container = document.getElementById('menu-container');
-                if(container) container.classList.remove('hidden');
-                
-                renderCategories();
-                renderMenu();
-                loadGoogleTranslateScript();
+        // Questa funzione ora funzionerà SEMPRE, anche senza internet.
+        function togglePassword() {
+            const input = document.getElementById('admin-pass');
+            const icon = document.getElementById('eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
             }
         }
 
-        function toggleLangDropdown() { 
-            const dropdown = document.getElementById('lang-dropdown');
-            if(dropdown) dropdown.classList.toggle('hidden'); 
-        }
-
-        function renderCategories() {
-            const bar = document.getElementById('category-scroll');
-            if(!bar) return;
-            bar.innerHTML = '';
+        async function login() {
+            const pass = document.getElementById('admin-pass').value;
+            const btn = document.getElementById('login-btn');
+            const err = document.getElementById('login-error');
+            const errMsg = document.getElementById('error-msg-text');
             
-            if (menuItems.length === 0) return;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i>';
+            err.classList.add('hidden');
 
-            const labelAll = currentLang === 'it' ? 'Tutti' : 'All';
-            const categories = [labelAll, ...new Set(menuItems.map(item => item.category))];
-            
-            categories.forEach(cat => {
-                const btn = document.createElement('button');
-                const isAll = cat === labelAll;
-                const isActive = isAll ? activeCategory === 'Tutti' : activeCategory === cat;
-
-                btn.className = isActive 
-                    ? "font-serif text-xs sm:text-sm tracking-[0.2em] text-gold-500 border-b border-gold-500 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer min-h-[44px]"
-                    : "font-serif text-xs sm:text-sm tracking-[0.2em] text-stone-500 hover:text-stone-300 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer min-h-[44px]";
+            try {
+                // Controllo di sicurezza incapsulato
+                if (!window.supabase) throw new Error("Connessione Server bloccata.");
+                if (!supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                if (typeof md5 !== 'function') throw new Error("Errore libreria di sicurezza.");
                 
-                btn.innerText = cat;
-                btn.onclick = () => { activeCategory = isAll ? 'Tutti' : cat; renderCategories(); renderMenu(); };
-                bar.appendChild(btn);
-            });
+                const hash = md5(pass);
+                const { data, error } = await supabase.from('gestione_accessi').select('password_hash').eq('id', 1).single();
+                
+                if (error) throw new Error("Errore comunicazione Database.");
+                if (!data || data.password_hash !== hash) throw new Error("Password errata.");
+                
+                // Login completato
+                document.getElementById('login-container').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                fetchMenu();
+            } catch (e) {
+                console.error(e);
+                errMsg.innerText = e.message;
+                err.classList.remove('hidden');
+            } finally {
+                btn.innerHTML = '<span>Entra nel Gestionale</span>';
+            }
         }
 
-        function renderMenu() {
-            const container = document.getElementById('menu-container');
-            if(!container) return;
-            container.innerHTML = '';
+        function logout() {
+            document.getElementById('admin-pass').value = '';
+            document.getElementById('login-container').classList.remove('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+        }
 
-            if (menuItems.length === 0) {
-                container.innerHTML = `<div class="text-center py-20 text-stone-500 font-serif italic tracking-widest text-sm uppercase">Nessun piatto disponibile al momento.</div>`;
+        async function fetchMenu() {
+            try {
+                const { data } = await supabase.from('menu').select('*').order('category');
+                menuItems = data || [];
+                renderTable(menuItems);
+            } catch (e) {
+                showToast("Errore lettura piatti.");
+                renderTable([]);
+            }
+        }
+
+        function renderTable(items) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            if (items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-stone-500 uppercase tracking-widest text-xs">Nessun piatto inserito.</td></tr>`;
                 return;
             }
-
-            const filtered = activeCategory === 'Tutti' ? menuItems : menuItems.filter(i => i.category === activeCategory);
-            const grouped = {};
-            filtered.forEach(item => {
-                if (!grouped[item.category]) grouped[item.category] = [];
-                grouped[item.category].push(item);
+            items.forEach(item => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-stone-900/40 border-b border-stone-900/60">
+                        <td class="p-4 font-serif font-bold text-stone-100">${item.name} <span class="${item.available ? 'text-emerald-500' : 'text-rose-500'} text-xs ml-2">[${item.available ? 'ON' : 'OFF'}]</span></td>
+                        <td class="p-4 text-stone-400 text-xs">${item.category}</td>
+                        <td class="p-4 font-bold text-gold-500">${item.price.toFixed(2)} €</td>
+                        <td class="p-4 text-right">
+                            <button onclick="editProduct(${item.id})" class="text-gold-500 hover:text-white text-[10px] uppercase mr-3 cursor-pointer">Modifica</button>
+                            <button onclick="openDeleteModal(${item.id})" class="text-rose-500 hover:text-white text-[10px] uppercase cursor-pointer">Elimina</button>
+                        </td>
+                    </tr>`;
             });
+        }
 
-            for (const category in grouped) {
-                const section = document.createElement('section');
-                section.className = "space-y-8";
-                section.innerHTML = `
-                    <div class="text-center mb-10">
-                        <h2 class="font-serif text-xl sm:text-2xl tracking-[0.25em] text-gold-500/90 uppercase font-light inline-block pb-2 border-b border-gold-500/10">${category}</h2>
-                    </div>
-                    <div class="space-y-8" id="cat-items-${category.replace(/\s+/g, '')}"></div>
-                `;
-                container.appendChild(section);
-                const itemsContainer = document.getElementById(`cat-items-${category.replace(/\s+/g, '')}`);
+        async function saveProduct(e) {
+            e.preventDefault();
+            const id = document.getElementById('prod-id').value;
+            const payload = {
+                name: document.getElementById('prod-name').value, category: document.getElementById('prod-category').value,
+                price: parseFloat(document.getElementById('prod-price').value), description: document.getElementById('prod-description').value,
+                available: document.getElementById('prod-available').checked
+            };
 
-                grouped[category].forEach(item => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = "group";
-                    itemDiv.innerHTML = `
-                        <div class="flex justify-between items-baseline gap-4">
-                            <h3 class="font-serif text-base sm:text-lg font-medium text-stone-100 group-hover:text-gold-400 transition-colors duration-300">${item.name}</h3>
-                            <span class="h-px bg-stone-900 flex-1 mx-1.5 border-b border-dashed border-stone-800/80"></span>
-                            <span class="font-serif text-sm sm:text-base font-semibold text-gold-500 tracking-wider notranslate">${item.price.toFixed(2)} €</span>
-                        </div>
-                        ${item.description ? `<p class="text-xs sm:text-sm text-stone-400 mt-2 font-light leading-relaxed max-w-2xl font-sans">${item.description}</p>` : ''}
-                    `;
-                    itemsContainer.appendChild(itemDiv);
-                });
+            try {
+                let error;
+                if (id) { ({ error } = await supabase.from('menu').update(payload).eq('id', id)); } 
+                else { ({ error } = await supabase.from('menu').insert([payload])); }
+
+                if (error) throw error;
+                showToast("Salvato con successo!"); 
+                resetForm(); 
+                fetchMenu();
+            } catch(e) {
+                showToast("Errore durante il salvataggio.");
             }
         }
 
-        function translateMenu(langCode) {
-            currentLang = langCode;
-            const flags = { it: '🇮🇹', en: '🇬🇧', fr: '🇫🇷', de: '🇩🇪' };
-            const flagElement = document.getElementById('active-flag');
-            const dropdown = document.getElementById('lang-dropdown');
-            
-            if(flagElement) flagElement.innerText = flags[langCode];
-            if(dropdown) dropdown.classList.add('hidden');
-
-            try {
-                const googleSelect = document.querySelector('.goog-te-combo');
-                if (googleSelect) {
-                    googleSelect.value = langCode;
-                    googleSelect.dispatchEvent(new Event('change'));
-                }
-            } catch (err) {}
-            
-            renderCategories();
-            renderMenu();
+        function editProduct(id) {
+            const item = menuItems.find(i => i.id == id);
+            if(!item) return;
+            document.getElementById('prod-id').value = item.id;
+            document.getElementById('prod-name').value = item.name;
+            document.getElementById('prod-category').value = item.category;
+            document.getElementById('prod-price').value = item.price;
+            document.getElementById('prod-description').value = item.description || '';
+            document.getElementById('prod-available').checked = item.available;
+            document.getElementById('cancel-btn').classList.remove('hidden');
         }
 
-        function googleTranslateElementInit() {
-            try {
-                new google.translate.TranslateElement({ pageLanguage: 'it', includedLanguages: 'it,en,fr,de', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false }, 'google_translate_element');
-            } catch (e) {}
-        }
+        function openDeleteModal(id) { idToDelete = id; document.getElementById('confirm-delete-modal').classList.remove('hidden'); }
+        function closeDeleteModal() { idToDelete = null; document.getElementById('confirm-delete-modal').classList.add('hidden'); }
 
-        function loadGoogleTranslateScript() {
-            try {
-                const script = document.createElement('script');
-                script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-                document.body.appendChild(script);
-            } catch(e) {}
-        }
-
-        window.addEventListener('DOMContentLoaded', init);
-        window.addEventListener('click', (e) => {
-            const dropdown = document.getElementById('lang-dropdown');
-            if (dropdown && !e.target.closest('#lang-dropdown') && !e.target.closest('button')) { 
-                dropdown.classList.add('hidden'); 
+        document.getElementById('confirm-delete-btn').onclick = async () => {
+            if (idToDelete) { 
+                await supabase.from('menu').delete().eq('id', idToDelete); 
+                fetchMenu(); 
+                closeDeleteModal(); 
             }
-        }, true);
+        };
+
+        function resetForm() { document.getElementById('product-form').reset(); document.getElementById('prod-id').value = ''; document.getElementById('cancel-btn').classList.add('hidden'); }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = msg;
+            t.classList.replace('translate-y-24', 'translate-y-0'); t.classList.replace('opacity-0', 'opacity-100');
+            setTimeout(() => { t.classList.replace('translate-y-0', 'translate-y-24'); t.classList.replace('opacity-100', 'opacity-0'); }, 3000);
+        }
     </script>
 </body>
 </html>
