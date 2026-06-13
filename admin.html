@@ -2,36 +2,55 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin PEMA - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-gray-100 p-8">
     <div id="login" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg">
-        <input type="password" id="pass" placeholder="Password" class="border p-2 w-full mb-4 rounded">
-        <button onclick="login()" class="bg-black text-white w-full p-2 rounded">ENTRA</button>
+        <h2 class="text-2xl font-bold mb-6 text-center">Accesso Admin</h2>
+        <input type="password" id="pass" placeholder="Inserisci Password" class="border p-3 w-full mb-4 rounded focus:outline-none focus:ring-2 focus:ring-black">
+        <button onclick="login()" class="bg-black text-white w-full p-3 rounded font-bold hover:bg-gray-800 transition-colors">ENTRA</button>
     </div>
 
-    <div id="admin" class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md hidden">
-        <h2 class="text-xl font-bold mb-4">Gestione Menù</h2>
-        <form onsubmit="saveProd(event)" class="grid grid-cols-4 gap-4 mb-8 bg-gray-50 p-4 rounded">
-            <input type="text" id="p-name" placeholder="Nome Piatto" required class="border p-2 rounded col-span-2">
-            <select id="p-cat-select" onchange="toggleCustom()" class="border p-2 rounded">
-                <option value="Antipasti">Antipasti</option><option value="Primi">Primi</option><option value="Secondi">Secondi</option>
-                <option value="Dolci">Dolci</option><option value="Vini - Bollicine">Vini - Bollicine</option>
-                <option value="Vini - Bianchi">Vini - Bianchi</option><option value="Vini - Rossi">Vini - Rossi</option>
-                <option value="Altro">Nuova Cat...</option>
+    <div id="admin" class="hidden max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <h2 class="text-3xl font-bold">Gestione Menù</h2>
+            <button onclick="location.reload()" class="text-sm text-gray-500 hover:text-black">Aggiorna Dati</button>
+        </div>
+        
+        <form onsubmit="saveProd(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 bg-gray-50 p-6 rounded-lg border">
+            <input type="text" id="p-name" placeholder="Nome Piatto" required class="border p-3 rounded md:col-span-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="p-cat-select" onchange="toggleCustom()" class="border p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="Antipasti">Antipasti</option>
+                <option value="Primi">Primi</option>
+                <option value="Secondi">Secondi</option>
+                <option value="Dolci">Dolci</option>
+                <option value="Vini - Bollicine">Vini - Bollicine</option>
+                <option value="Vini - Bianchi">Vini - Bianchi</option>
+                <option value="Vini - Rossi">Vini - Rossi</option>
+                <option value="Altro">Nuova Categoria...</option>
             </select>
-            <input type="text" id="p-cat-custom" placeholder="Nome Categoria" class="border p-2 rounded hidden">
-            <input type="number" id="p-price" step="0.01" placeholder="€" required class="border p-2 rounded">
-            <button type="submit" class="bg-blue-600 text-white p-2 rounded col-span-4">SALVA PRODOTTO</button>
+            <input type="text" id="p-cat-custom" placeholder="Nome Categoria Personalizzata" class="border p-3 rounded hidden">
+            <input type="number" id="p-price" step="0.01" placeholder="Prezzo (€)" required class="border p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded md:col-span-4 font-bold transition-colors">SALVA PRODOTTO</button>
         </form>
 
-        <table class="w-full text-left border-collapse" id="p-list"></table>
+        <div class="mb-6">
+            <input type="text" id="search" onkeyup="filter()" placeholder="🔍 Cerca prodotto per nome..." class="border p-3 w-full rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse" id="p-list">
+                <!-- I prodotti verranno caricati qui -->
+            </table>
+        </div>
     </div>
 
     <script>
         const supabase = window.supabase.createClient("https://cpmianmjcxhputneygsw.supabase.co", "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm");
+        let allProds = [];
 
         async function login() {
             document.getElementById('login').classList.add('hidden');
@@ -40,32 +59,75 @@
         }
 
         async function loadProds() {
-            const { data } = await supabase.from('menu').select('*');
-            if(data) {
-                document.getElementById('p-list').innerHTML = data.map(p => `
-                    <tr class="border-b">
-                        <td class="p-2 font-bold">${p.name}</td><td class="p-2">${p.category}</td>
-                        <td class="p-2">${p.price}€</td>
-                        <td class="p-2"><button onclick="del(${p.id})" class="text-red-500">ELIMINA</button></td>
-                    </tr>`).join('');
+            const { data, error } = await supabase.from('menu').select('*').order('category');
+            if (error) {
+                console.error("Errore nel caricamento:", error);
+                return;
             }
+            allProds = data || [];
+            renderTable(allProds);
+        }
+
+        function renderTable(data) {
+            document.getElementById('p-list').innerHTML = data.map(p => `
+                <tr class="border-b hover:bg-gray-50 transition-colors">
+                    <td class="p-4 font-bold text-gray-800">${p.name}</td>
+                    <td class="p-4 text-gray-600">${p.category}</td>
+                    <td class="p-4 font-semibold">${p.price.toFixed(2)} €</td>
+                    <td class="p-4 text-right">
+                        <button onclick="del(${p.id})" class="text-red-500 hover:text-red-700 font-bold px-3 py-1 rounded border border-red-500 hover:bg-red-50 transition-colors">ELIMINA</button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        function filter() {
+            const term = document.getElementById('search').value.toLowerCase();
+            renderTable(allProds.filter(p => p.name.toLowerCase().includes(term)));
         }
 
         function toggleCustom() {
             const isCustom = document.getElementById('p-cat-select').value === 'Altro';
             document.getElementById('p-cat-custom').classList.toggle('hidden', !isCustom);
+            if (isCustom) {
+                document.getElementById('p-cat-custom').required = true;
+            } else {
+                document.getElementById('p-cat-custom').required = false;
+                document.getElementById('p-cat-custom').value = '';
+            }
         }
 
         async function saveProd(e) {
             e.preventDefault();
-            const cat = document.getElementById('p-cat-select').value === 'Altro' ? document.getElementById('p-cat-custom').value : document.getElementById('p-cat-select').value;
-            await supabase.from('menu').insert([{ 
-                name: document.getElementById('p-name').value, category: cat, 
-                price: parseFloat(document.getElementById('p-price').value), available: true 
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerText = "Salvataggio...";
+
+            const cat = document.getElementById('p-cat-select').value === 'Altro' 
+                ? document.getElementById('p-cat-custom').value 
+                : document.getElementById('p-cat-select').value;
+            
+            const { error } = await supabase.from('menu').insert([{ 
+                name: document.getElementById('p-name').value, 
+                category: cat, 
+                price: parseFloat(document.getElementById('p-price').value), 
+                available: true 
             }]);
-            location.reload();
+
+            if (error) {
+                alert("Errore durante il salvataggio: " + error.message);
+                btn.disabled = false;
+                btn.innerText = "SALVA PRODOTTO";
+            } else {
+                location.reload();
+            }
         }
-        async function del(id) { await supabase.from('menu').delete().eq('id', id); location.reload(); }
+
+        async function del(id) { 
+            if(confirm("Sei sicuro di voler eliminare questo prodotto?")) {
+                await supabase.from('menu').delete().eq('id', id); 
+                loadProds(); 
+            }
+        }
     </script>
 </body>
 </html>
