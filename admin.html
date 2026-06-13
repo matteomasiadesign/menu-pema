@@ -177,6 +177,7 @@
                                     <tr class="border-b border-stone-900 text-[10px] font-bold text-stone-500 uppercase tracking-widest bg-black/40">
                                         <th class="p-4">Piatto</th>
                                         <th class="p-4">Categoria</th>
+                                        <th class="p-4">Visibilità</th>
                                         <th class="p-4">Prezzo</th>
                                         <th class="p-4 text-right">Azioni</th>
                                     </tr>
@@ -198,7 +199,7 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-850 pb-6 mb-6">
                     <div>
                         <h2 class="font-serif text-xl text-gold-500 uppercase tracking-widest">Ordinamento Sequenza Piatti</h2>
-                        <p class="text-stone-400 text-xs mt-1">Seleziona la categoria ed ordina l'apparizione dei piatti sul menu del cliente usando le frecce.</p>
+                        <p class="text-stone-400 text-xs mt-1">Seleziona la categoria ed ordina l'apparizione dei piatti sul menu del menu del cliente usando le frecce.</p>
                     </div>
                     <!-- Select Categoria Dinamico -->
                     <select id="reorder-cat-select" onchange="loadReorderCategory()" class="bg-dark-850 border border-stone-800 p-3.5 rounded-xl text-stone-100 text-xs font-bold uppercase tracking-wider focus:border-gold-500 outline-none cursor-pointer">
@@ -511,6 +512,7 @@
                         return {
                             ...item,
                             category: matchedCat ? matchedCat.name : 'Altro',
+                            available: item.available !== false, // Failsafe fallback
                             allergens: item.product_allergens ? item.product_allergens.map(pa => pa.allergen_id) : []
                         };
                     });
@@ -528,6 +530,25 @@
             }
         }
 
+        // Funzione rapida per attivare/disattivare la visibilità (interruttore ad un click)
+        async function toggleProductVisibility(productId, currentStatus) {
+            if (!supabaseClient) return;
+            const targetStatus = !currentStatus;
+
+            // Aggiorna istantaneamente l'array locale per feedback visivo rapido (Optimistic UI)
+            const item = menuItems.find(i => i.id === productId);
+            if (item) item.available = targetStatus;
+            renderTable(menuItems);
+
+            const { error } = await supabaseClient.from('products').update({ available: targetStatus }).eq('id', productId);
+            if (error) {
+                showToast("Errore durante l'aggiornamento visibilità: " + error.message, false);
+                fetchMenu(); // Esegue il rollback
+            } else {
+                showToast(targetStatus ? "Piatto reso visibile sul menu" : "Piatto nascosto ai clienti");
+            }
+        }
+
         function renderTable(items) {
             const tbody = document.getElementById('table-body');
             const cardsContainer = document.getElementById('cards-container');
@@ -536,7 +557,7 @@
             cardsContainer.innerHTML = '';
 
             if (items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-stone-500 font-serif italic tracking-widest text-xs">Nessun piatto trovato nel database.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-stone-500 font-serif italic tracking-widest text-xs">Nessun piatto trovato nel database.</td></tr>`;
                 cardsContainer.innerHTML = `<div class="p-8 text-center text-stone-500 font-serif italic tracking-widest text-xs">Nessun piatto trovato nel database.</div>`;
                 return;
             }
@@ -551,6 +572,14 @@
                         ${item.description ? `<div class="text-xs text-stone-500 max-w-xs truncate mt-1 font-sans font-light">${item.description}</div>` : ''}
                     </td>
                     <td class="p-4"><span class="bg-stone-850 text-stone-300 text-[10px] font-semibold px-2.5 py-1 rounded-md uppercase tracking-wider font-sans">${item.category}</span></td>
+                    <td class="p-4">
+                        <button onclick="toggleProductVisibility(${item.id}, ${item.available})" class="cursor-pointer">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-bold tracking-widest uppercase transition-all ${item.available ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/25 hover:bg-rose-500/20'}">
+                                <span class="h-1.5 w-1.5 rounded-full ${item.available ? 'bg-emerald-500' : 'bg-rose-500'}"></span>
+                                ${item.available ? 'Visibile' : 'Nascosto'}
+                            </span>
+                        </button>
+                    </td>
                     <td class="p-4 font-bold text-gold-500 font-serif text-base">${item.price.toFixed(2)} €</td>
                     <td class="p-4 text-right space-x-3 whitespace-nowrap">
                         <button onclick="editProduct(${item.id})" class="text-gold-500 hover:text-gold-400 font-bold text-[10px] uppercase tracking-widest cursor-pointer transition-colors min-h-[44px] min-w-[44px]">Modifica</button>
@@ -571,7 +600,14 @@
                         <span class="font-bold text-gold-500 font-serif text-base whitespace-nowrap">${item.price.toFixed(2)} €</span>
                     </div>
                     <div class="flex justify-between items-center mt-2 pt-3 border-t border-stone-850">
-                        <span class="bg-stone-850 text-stone-300 text-[9px] font-semibold px-2.5 py-1 rounded-md uppercase tracking-wider font-sans">${item.category}</span>
+                        <div class="flex items-center gap-2.5">
+                            <span class="bg-stone-850 text-stone-300 text-[9px] font-semibold px-2.5 py-1 rounded-md uppercase tracking-wider font-sans">${item.category}</span>
+                            <button onclick="toggleProductVisibility(${item.id}, ${item.available})" class="cursor-pointer">
+                                <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[8px] font-bold tracking-widest uppercase transition-all ${item.available ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
+                                    ${item.available ? 'Visibile' : 'Nascosto'}
+                                </span>
+                            </button>
+                        </div>
                         <div class="flex gap-2">
                             <button onclick="editProduct(${item.id})" class="bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 font-bold text-[10px] px-3.5 py-2 rounded-lg uppercase tracking-wider transition-all min-h-[44px] min-w-[44px]">Modifica</button>
                             <button onclick="openDeleteModal(${item.id})" class="bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 font-bold text-[10px] px-3.5 py-2 rounded-lg uppercase tracking-wider transition-all min-h-[44px] min-w-[44px]">Elimina</button>
@@ -626,6 +662,7 @@
                     // Inserimento con calcolo del sort_order di coda
                     const countInCategory = menuItems.filter(i => i.category_id === categoryId).length;
                     payload.sort_order = countInCategory + 1;
+                    payload.available = true; // Di base visibile alla creazione
                     
                     const { data, error } = await supabaseClient.from('products').insert([payload]).select('id').single();
                     saveError = error;
