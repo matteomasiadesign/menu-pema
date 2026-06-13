@@ -96,19 +96,42 @@
         let activeCategory = 'Tutti';
         let currentLang = 'it';
 
-        // La funzione di avvio viene chiamata solo quando il documento è completamente caricato
         async function init() {
             try {
-                // Controllo di sicurezza: se Supabase non è stato caricato dal browser, non facciamo crashare lo script!
+                // Controllo di sicurezza: se Supabase non è stato caricato, evitiamo il crash
                 if (typeof window.supabase === 'undefined') {
                     throw new Error("Libreria Supabase non caricata.");
                 }
                 
-                // Creiamo il client SOLO ORA, dentro un blocco sicuro
+                // Connessione a Supabase
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 
-                // Chiamata vera al database
-        function toggleLangDropdown() { document.getElementById('lang-dropdown').classList.toggle('hidden'); }
+                // Recupero dei dati reali
+                const { data, error } = await supabaseClient
+                    .from('menu')
+                    .select('*')
+                    .eq('available', true)
+                    .order('category', { ascending: true });
+
+                if (error) throw error;
+                menuItems = data || [];
+
+            } catch (e) {
+                console.error("Errore durante il caricamento del menu:", e);
+                menuItems = [];
+            } finally {
+                // Questo blocco viene eseguito SEMPRE, togliendo il caricamento infinito anche in caso di errori
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('menu-container').classList.remove('hidden');
+                renderCategories();
+                renderMenu();
+                loadGoogleTranslateScript();
+            }
+        }
+
+        function toggleLangDropdown() { 
+            document.getElementById('lang-dropdown').classList.toggle('hidden'); 
+        }
 
         function renderCategories() {
             const bar = document.getElementById('category-scroll');
@@ -116,14 +139,13 @@
             
             if (menuItems.length === 0) return;
 
-            // Fissiamo il testo a "Tutti" in italiano. Google Translate lo tradurrà automaticamente in All, Tous, ecc.
+            // Manteniamo "Tutti" per permettere a Google Translate di tradurlo
             const categories = ['Tutti', ...new Set(menuItems.map(item => item.category))];
             
             categories.forEach(cat => {
                 const btn = document.createElement('button');
                 const isActive = activeCategory === cat;
 
-                // Aggiungiamo classe "cat-btn" e attributo data-category per gestirli tramite CSS
                 btn.className = isActive 
                     ? "cat-btn font-serif text-xs sm:text-sm tracking-[0.2em] text-gold-500 border-b border-gold-500 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer min-h-[44px]"
                     : "cat-btn font-serif text-xs sm:text-sm tracking-[0.2em] text-stone-500 hover:text-stone-300 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer min-h-[44px]";
@@ -144,7 +166,7 @@
                 return;
             }
 
-            // Rendiamo TUTTI i piatti subito, raggruppati per categoria
+            // Rendiamo TUTTI i piatti subito e li raggruppiamo
             const grouped = {};
             menuItems.forEach(item => {
                 if (!grouped[item.category]) grouped[item.category] = [];
@@ -153,9 +175,9 @@
 
             for (const category in grouped) {
                 const section = document.createElement('section');
-                // Aggiungiamo data-section e classi blocco/nascosto per il filtro CSS
                 section.dataset.section = category;
-                section.className = (activeCategory === 'Tutti' || activeCategory === category) ? "space-y-8 menu-section block" : "space-y-8 menu-section hidden";
+                // Impostiamo tutto su 'block' di default per far leggere tutto al traduttore
+                section.className = "space-y-8 menu-section block";
                 
                 section.innerHTML = `
                     <div class="text-center mb-10">
@@ -180,9 +202,13 @@
                     itemsContainer.appendChild(itemDiv);
                 });
             }
+            
+            // Applichiamo il filtro corrente subito dopo aver generato tutto
+            filterMenuCSS(activeCategory);
         }
 
-        // NUOVA FUNZIONE: Nasconde/Mostra gli elementi senza cancellarli, preservando le traduzioni
+        // Questa funzione ora nasconde le sezioni tramite CSS (senza distruggere i tag HTML) 
+        // salvando il lavoro di traduzione fatto da Google!
         function filterMenuCSS(targetCat) {
             activeCategory = targetCat;
 
@@ -218,14 +244,16 @@
                     googleSelect.dispatchEvent(new Event('change'));
                 }
             } catch (err) {}
-            
-            // IMPORTANTE: Abbiamo rimosso i vecchi renderCategories() e renderMenu()
-            // In questo modo Google Translate traduce il DOM e noi non lo distruggiamo più!
         }
 
         function googleTranslateElementInit() {
             try {
-                new google.translate.TranslateElement({ pageLanguage: 'it', includedLanguages: 'it,en,fr,de', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false }, 'google_translate_element');
+                new google.translate.TranslateElement({ 
+                    pageLanguage: 'it', 
+                    includedLanguages: 'it,en,fr,de', 
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE, 
+                    autoDisplay: false 
+                }, 'google_translate_element');
             } catch (e) {}
         }
 
@@ -237,7 +265,7 @@
             } catch(e) {}
         }
 
-        // Avvio sicuro all'apertura
+        // L'evento init assicura il lancio solo a caricamento avvenuto
         window.addEventListener('DOMContentLoaded', init);
         
         window.addEventListener('click', (e) => {
