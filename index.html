@@ -115,7 +115,7 @@
     <script>
         const SUPABASE_URL = "https://cpmianmjcxhputneygsw.supabase.co";
         const SUPABASE_KEY = "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm";
-        const apiKey = ""; // Inserire qui la chiave API Gemini se necessaria
+        const apiKey = ""; // Chiave API Gemini
         
         let supabase;
         let menuItems = [];
@@ -130,27 +130,27 @@
         }
 
         async function init() {
-            try {
-                if (!supabase) throw new Error("Client Supabase non inizializzato o non disponibile.");
+            // Impedisce al loader di rimanere bloccato impostando un timer di sicurezza di 6 secondi
+            const timeoutId = setTimeout(() => {
+                if (menuItems.length === 0) {
+                    showErrorFallback("Tempo di attesa scaduto. Supabase è offline o la connessione è instabile.");
+                }
+            }, 6000);
 
-                // Evita il caricamento infinito se Supabase è in Sleep Mode o la rete è bloccata (max 6 secondi)
-                const fetchPromise = supabase
+            try {
+                if (!supabase) throw new Error("Client Supabase non configurato.");
+
+                const { data, error } = await supabase
                     .from('menu')
                     .select('*')
                     .eq('available', true)
                     .order('category', { ascending: true });
 
-                const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error("La connessione con il database ha superato il tempo limite (Timeout).")), 6000)
-                );
-
-                const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+                clearTimeout(timeoutId);
 
                 if (error) throw error;
                 
-                if (data) {
-                    menuItems = data;
-                }
+                menuItems = data || [];
                 
                 document.getElementById('loader').classList.add('hidden');
                 document.getElementById('menu-container').classList.remove('hidden');
@@ -158,17 +158,21 @@
                 renderMenu();
 
             } catch (e) {
+                clearTimeout(timeoutId);
                 console.error("Errore irreversibile di connessione:", e);
-                // Schermata di errore premium stilizzata con bottone di riprova
-                document.getElementById('loader').innerHTML = `
-                    <div class="text-rose-500/90 font-sans text-sm p-6 border border-rose-950/40 rounded-xl bg-rose-950/15 max-w-sm mx-auto shadow-2xl backdrop-blur">
-                        <i class="fa-solid fa-triangle-exclamation mb-3 text-2xl text-rose-500 animate-pulse"></i><br>
-                        <span class="font-serif text-gold-500 text-base block mb-1 uppercase tracking-widest">Connessione Rallentata</span>
-                        <span class="text-xs text-stone-400 block mb-5 leading-relaxed">Il server potrebbe essere temporaneamente inattivo o la tua rete è instabile. Per favore, prova a ricaricare.</span>
-                        <button onclick="location.reload()" class="bg-gold-500 text-dark-950 font-bold px-4 py-2.5 rounded-lg text-[10px] tracking-widest uppercase hover:bg-gold-600 active:scale-95 transition-all cursor-pointer">Riprova Connessione</button>
-                    </div>
-                `;
+                showErrorFallback("Impossibile stabilire una connessione stabile con il database cloud.");
             }
+        }
+
+        function showErrorFallback(msg) {
+            document.getElementById('loader').innerHTML = `
+                <div class="text-rose-500/90 font-sans text-sm p-6 border border-rose-950/40 rounded-xl bg-rose-950/15 max-w-sm mx-auto shadow-2xl backdrop-blur animate-fade-in">
+                    <i class="fa-solid fa-triangle-exclamation mb-3 text-2xl text-rose-500 animate-pulse"></i><br>
+                    <span class="font-serif text-gold-500 text-base block mb-1 uppercase tracking-widest">Connessione Rallentata</span>
+                    <span class="text-xs text-stone-400 block mb-5 leading-relaxed">${msg}</span>
+                    <button onclick="location.reload()" class="bg-gold-500 text-dark-950 font-bold px-4 py-2.5 rounded-lg text-[10px] tracking-widest uppercase hover:bg-gold-600 active:scale-95 transition-all cursor-pointer">Riprova Connessione</button>
+                </div>
+            `;
         }
 
         function toggleLangDropdown() { document.getElementById('lang-dropdown').classList.toggle('hidden'); }
@@ -187,9 +191,8 @@
                 return;
             }
 
-            // Se non c'è chiave API impostata, rimani in italiano senza bloccare la pagina
             if (!apiKey) {
-                console.warn("Chiave API Gemini mancante. Traduzione disabilitata.");
+                console.warn("Nessuna chiave API Gemini definita.");
                 currentLang = 'it';
                 document.getElementById('active-flag').innerText = flags['it'];
                 renderCategories();
