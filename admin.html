@@ -12,31 +12,26 @@
         <button onclick="login()" class="bg-black text-white w-full p-2 rounded">ENTRA</button>
     </div>
 
-    <div id="admin" class="hidden max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-2xl font-bold mb-6">Gestione Menù</h2>
-        <form onsubmit="saveProd(event)" class="grid grid-cols-4 gap-4 mb-8 bg-gray-50 p-4 rounded border">
+    <div id="admin" class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md hidden">
+        <h2 class="text-xl font-bold mb-4">Gestione Menù</h2>
+        <form onsubmit="saveProd(event)" class="grid grid-cols-4 gap-4 mb-8 bg-gray-50 p-4 rounded">
             <input type="text" id="p-name" placeholder="Nome Piatto" required class="border p-2 rounded col-span-2">
             <select id="p-cat-select" onchange="toggleCustom()" class="border p-2 rounded">
-                <option value="Antipasti">Antipasti</option><option value="Primi">Primi</option>
-                <option value="Secondi">Secondi</option><option value="Dolci">Dolci</option>
-                <option value="Vini - Bollicine">Vini - Bollicine</option>
+                <option value="Antipasti">Antipasti</option><option value="Primi">Primi</option><option value="Secondi">Secondi</option>
+                <option value="Dolci">Dolci</option><option value="Vini - Bollicine">Vini - Bollicine</option>
                 <option value="Vini - Bianchi">Vini - Bianchi</option><option value="Vini - Rossi">Vini - Rossi</option>
                 <option value="Altro">Nuova Cat...</option>
             </select>
-            <input type="text" id="p-cat-custom" placeholder="Nome Cat" class="border p-2 rounded hidden">
+            <input type="text" id="p-cat-custom" placeholder="Nome Categoria" class="border p-2 rounded hidden">
             <input type="number" id="p-price" step="0.01" placeholder="€" required class="border p-2 rounded">
-            <button type="submit" class="bg-blue-600 text-white p-2 rounded col-span-4 font-bold">SALVA PRODOTTO</button>
+            <button type="submit" class="bg-blue-600 text-white p-2 rounded col-span-4">SALVA PRODOTTO</button>
         </form>
 
-        <div class="flex gap-4 mb-6">
-            <input type="text" id="search" onkeyup="filter()" placeholder="Cerca prodotto..." class="border p-2 flex-1 rounded">
-        </div>
         <table class="w-full text-left border-collapse" id="p-list"></table>
     </div>
 
     <script>
         const supabase = window.supabase.createClient("https://cpmianmjcxhputneygsw.supabase.co", "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm");
-        let allProds = [];
 
         async function login() {
             document.getElementById('login').classList.add('hidden');
@@ -46,24 +41,19 @@
 
         async function loadProds() {
             const { data } = await supabase.from('menu').select('*');
-            allProds = data;
-            renderTable(allProds);
-        }
-
-        function renderTable(data) {
-            document.getElementById('p-list').innerHTML = data.map(p => `
-                <tr class="border-b hover:bg-gray-50"><td class="p-3 font-bold">${p.name}</td>
-                <td class="p-3">${p.category}</td><td class="p-3">${p.price}€</td>
-                <td class="p-3 text-right"><button onclick="del(${p.id})" class="text-red-500 font-bold">ELIMINA</button></td></tr>`).join('');
-        }
-
-        function filter() {
-            const term = document.getElementById('search').value.toLowerCase();
-            renderTable(allProds.filter(p => p.name.toLowerCase().includes(term)));
+            if(data) {
+                document.getElementById('p-list').innerHTML = data.map(p => `
+                    <tr class="border-b">
+                        <td class="p-2 font-bold">${p.name}</td><td class="p-2">${p.category}</td>
+                        <td class="p-2">${p.price}€</td>
+                        <td class="p-2"><button onclick="del(${p.id})" class="text-red-500">ELIMINA</button></td>
+                    </tr>`).join('');
+            }
         }
 
         function toggleCustom() {
-            document.getElementById('p-cat-custom').classList.toggle('hidden', document.getElementById('p-cat-select').value !== 'Altro');
+            const isCustom = document.getElementById('p-cat-select').value === 'Altro';
+            document.getElementById('p-cat-custom').classList.toggle('hidden', !isCustom);
         }
 
         async function saveProd(e) {
