@@ -25,8 +25,7 @@
             </select>
             <input type="text" id="p-cat-custom" placeholder="Nome Cat" class="border p-2 rounded hidden">
             <input type="number" id="p-price" step="0.01" placeholder="€" required class="border p-2 rounded">
-            <input type="number" id="p-pos" placeholder="Ordine" value="0" class="border p-2 rounded">
-            <button type="submit" class="bg-blue-600 text-white p-2 rounded col-span-4 font-bold">SALVA</button>
+            <button type="submit" class="bg-blue-600 text-white p-2 rounded col-span-4 font-bold">SALVA PRODOTTO</button>
         </form>
 
         <div class="flex gap-4 mb-6">
@@ -46,7 +45,7 @@
         }
 
         async function loadProds() {
-            const { data } = await supabase.from('menu').select('*').order('position');
+            const { data } = await supabase.from('menu').select('*');
             allProds = data;
             renderTable(allProds);
         }
@@ -72,8 +71,7 @@
             const cat = document.getElementById('p-cat-select').value === 'Altro' ? document.getElementById('p-cat-custom').value : document.getElementById('p-cat-select').value;
             await supabase.from('menu').insert([{ 
                 name: document.getElementById('p-name').value, category: cat, 
-                price: parseFloat(document.getElementById('p-price').value), 
-                position: parseInt(document.getElementById('p-pos').value), available: true 
+                price: parseFloat(document.getElementById('p-price').value), available: true 
             }]);
             location.reload();
         }
