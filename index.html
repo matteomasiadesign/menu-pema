@@ -108,75 +108,55 @@
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 
                 // Chiamata vera al database
-                const { data, error } = await supabaseClient.from('menu').select('*').eq('available', true).order('category', { ascending: true });
-                if (error) throw error;
-                
-                menuItems = data || [];
-            } catch (e) {
-                console.error("Errore di caricamento Database:", e);
-                menuItems = []; 
-            } finally {
-                // IL FINALLY ASSICURA CHE IL LOADER SPARISCA SEMPRE, ANCHE SE C'È ERRORE
-                document.getElementById('loader').classList.add('hidden');
-                document.getElementById('menu-container').classList.remove('hidden');
-                
-                renderCategories();
-                renderMenu();
-                loadGoogleTranslateScript();
-            }
-        }
-
-        function toggleLangDropdown() { 
-            const dropdown = document.getElementById('lang-dropdown');
-            if(dropdown) dropdown.classList.toggle('hidden'); 
-        }
+        function toggleLangDropdown() { document.getElementById('lang-dropdown').classList.toggle('hidden'); }
 
         function renderCategories() {
             const bar = document.getElementById('category-scroll');
-            if(!bar) return;
             bar.innerHTML = '';
             
             if (menuItems.length === 0) return;
 
-            const labelAll = currentLang === 'it' ? 'Tutti' : 'All';
-            const categories = [labelAll, ...new Set(menuItems.map(item => item.category))];
+            // Fissiamo il testo a "Tutti" in italiano. Google Translate lo tradurrà automaticamente in All, Tous, ecc.
+            const categories = ['Tutti', ...new Set(menuItems.map(item => item.category))];
             
             categories.forEach(cat => {
                 const btn = document.createElement('button');
-                const isAll = cat === labelAll;
-                const isActive = isAll ? activeCategory === 'Tutti' : activeCategory === cat;
+                const isActive = activeCategory === cat;
 
+                // Aggiungiamo classe "cat-btn" e attributo data-category per gestirli tramite CSS
                 btn.className = isActive 
-                    ? "font-serif text-xs sm:text-sm tracking-[0.2em] text-gold-500 border-b border-gold-500 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer min-h-[44px]"
-                    : "font-serif text-xs sm:text-sm tracking-[0.2em] text-stone-500 hover:text-stone-300 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer min-h-[44px]";
+                    ? "cat-btn font-serif text-xs sm:text-sm tracking-[0.2em] text-gold-500 border-b border-gold-500 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer min-h-[44px]"
+                    : "cat-btn font-serif text-xs sm:text-sm tracking-[0.2em] text-stone-500 hover:text-stone-300 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer min-h-[44px]";
                 
                 btn.innerText = cat;
-                btn.onclick = () => { activeCategory = isAll ? 'Tutti' : cat; renderCategories(); renderMenu(); };
+                btn.dataset.category = cat;
+                btn.onclick = () => filterMenuCSS(cat);
                 bar.appendChild(btn);
             });
         }
 
         function renderMenu() {
             const container = document.getElementById('menu-container');
-            if(!container) return;
             container.innerHTML = '';
 
-            // Niente piatti demo! Messaggio pulito ed elegante se è vuoto
             if (menuItems.length === 0) {
-                container.innerHTML = `<div class="text-center py-20 text-stone-500 font-serif italic tracking-widest text-sm uppercase">Nessun piatto disponibile al momento.</div>`;
+                container.innerHTML = `<div class="text-center py-20 text-stone-500 font-serif italic tracking-widest text-sm">Nessun piatto disponibile al momento.</div>`;
                 return;
             }
 
-            const filtered = activeCategory === 'Tutti' ? menuItems : menuItems.filter(i => i.category === activeCategory);
+            // Rendiamo TUTTI i piatti subito, raggruppati per categoria
             const grouped = {};
-            filtered.forEach(item => {
+            menuItems.forEach(item => {
                 if (!grouped[item.category]) grouped[item.category] = [];
                 grouped[item.category].push(item);
             });
 
             for (const category in grouped) {
                 const section = document.createElement('section');
-                section.className = "space-y-8";
+                // Aggiungiamo data-section e classi blocco/nascosto per il filtro CSS
+                section.dataset.section = category;
+                section.className = (activeCategory === 'Tutti' || activeCategory === category) ? "space-y-8 menu-section block" : "space-y-8 menu-section hidden";
+                
                 section.innerHTML = `
                     <div class="text-center mb-10">
                         <h2 class="font-serif text-xl sm:text-2xl tracking-[0.25em] text-gold-500/90 uppercase font-light inline-block pb-2 border-b border-gold-500/10">${category}</h2>
@@ -202,14 +182,34 @@
             }
         }
 
+        // NUOVA FUNZIONE: Nasconde/Mostra gli elementi senza cancellarli, preservando le traduzioni
+        function filterMenuCSS(targetCat) {
+            activeCategory = targetCat;
+
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                if (btn.dataset.category === targetCat) {
+                    btn.className = "cat-btn font-serif text-xs sm:text-sm tracking-[0.2em] text-gold-500 border-b border-gold-500 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer min-h-[44px]";
+                } else {
+                    btn.className = "cat-btn font-serif text-xs sm:text-sm tracking-[0.2em] text-stone-500 hover:text-stone-300 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer min-h-[44px]";
+                }
+            });
+
+            document.querySelectorAll('.menu-section').forEach(section => {
+                if (targetCat === 'Tutti' || section.dataset.section === targetCat) {
+                    section.classList.remove('hidden');
+                    section.classList.add('block');
+                } else {
+                    section.classList.remove('block');
+                    section.classList.add('hidden');
+                }
+            });
+        }
+
         function translateMenu(langCode) {
             currentLang = langCode;
             const flags = { it: '🇮🇹', en: '🇬🇧', fr: '🇫🇷', de: '🇩🇪' };
-            const flagElement = document.getElementById('active-flag');
-            const dropdown = document.getElementById('lang-dropdown');
-            
-            if(flagElement) flagElement.innerText = flags[langCode];
-            if(dropdown) dropdown.classList.add('hidden');
+            document.getElementById('active-flag').innerText = flags[langCode];
+            document.getElementById('lang-dropdown').classList.add('hidden');
 
             try {
                 const googleSelect = document.querySelector('.goog-te-combo');
@@ -219,8 +219,8 @@
                 }
             } catch (err) {}
             
-            renderCategories();
-            renderMenu();
+            // IMPORTANTE: Abbiamo rimosso i vecchi renderCategories() e renderMenu()
+            // In questo modo Google Translate traduce il DOM e noi non lo distruggiamo più!
         }
 
         function googleTranslateElementInit() {
