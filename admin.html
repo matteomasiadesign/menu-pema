@@ -105,9 +105,9 @@
             
             <!-- SEZIONE 1: TABELLA DI GESTIONE & AGGIUNTA -->
             <div id="section-gestione" class="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
-                <!-- Colonna Form (Aggiungi/Modifica) -->
+                <!-- Colonna Form (Aggiungi/Modifica) con scroll di sicurezza interno -->
                 <div class="lg:col-span-4">
-                    <div class="bg-dark-900 p-6 rounded-2xl border border-stone-900 sticky top-24">
+                    <div class="bg-dark-900 p-6 rounded-2xl border border-stone-900 sticky top-24 max-h-[calc(100vh-140px)] overflow-y-auto no-scrollbar">
                         <h2 id="form-title" class="font-serif text-lg font-bold text-gold-500 mb-6 uppercase tracking-widest flex items-center gap-2">
                             <i class="fa-solid fa-plus-circle"></i> Aggiungi Prodotto
                         </h2>
@@ -143,7 +143,7 @@
                                 <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Descrizione / Ingredienti</label>
                                 <textarea id="prod-description" rows="3" placeholder="Composizione del piatto..." class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all resize-none font-sans"></textarea>
                             </div>
-                            <!-- GRIGLIA ALLERGENI INTERATTIVA -->
+                            <!-- GRIGLIA ALLERGENI INTERATTIVA CON SCROLL INTERNO -->
                             <div>
                                 <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Allergeni Presenti</label>
                                 <div id="allergens-grid" class="grid grid-cols-2 gap-2 bg-dark-850 border border-stone-850 p-3.5 rounded-xl max-h-32 overflow-y-auto no-scrollbar">
