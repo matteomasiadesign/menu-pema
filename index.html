@@ -2,72 +2,69 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PEMA - Menu Digitale</title>
+    <title>Admin PEMA</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { background-color: #050505; color: #d6d3d1; font-family: 'Inter', sans-serif; }
-        h1, h2, summary { font-family: 'Cormorant Garamond', serif; color: #d4af37; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
 </head>
-<body class="min-h-screen flex flex-col">
-    <header class="py-12 text-center border-b border-stone-800">
-        <h1 class="text-5xl tracking-[0.2em] uppercase notranslate">P E M A</h1>
-    </header>
+<body class="bg-gray-100 p-8">
+    <div id="login" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg">
+        <input type="password" id="pass" placeholder="Password" class="border p-2 w-full mb-4">
+        <button onclick="login()" class="bg-black text-white w-full p-2">ENTRA</button>
+    </div>
 
-    <main class="flex-1 max-w-3xl mx-auto p-4 w-full" id="menu-container">
-        <div id="loader" class="text-center py-20 text-stone-500">Caricamento menu...</div>
-    </main>
+    <div id="admin" class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md hidden">
+        <form onsubmit="saveProd(event)" class="grid grid-cols-2 gap-4 mb-8">
+            <input type="text" id="p-name" placeholder="Nome Piatto" required class="border p-2 rounded col-span-2">
+            <select id="p-cat" class="border p-2 rounded col-span-2">
+                <option value="Antipasti">Antipasti</option>
+                <option value="Primi">Primi</option>
+                <option value="Secondi">Secondi</option>
+                <option value="Dolci">Dolci</option>
+                <option value="Vini - Bollicine">Vini - Bollicine</option>
+                <option value="Vini - Bianchi">Vini - Bianchi</option>
+                <option value="Vini - Rossi">Vini - Rossi</option>
+            </select>
+            <input type="number" id="p-price" step="0.01" placeholder="Prezzo" required class="border p-2 rounded">
+            <button type="submit" class="bg-blue-600 text-white p-2 rounded font-bold">SALVA PIATTO</button>
+        </form>
+        <table class="w-full text-left border-collapse" id="p-list"></table>
+    </div>
 
     <script>
         const supabase = window.supabase.createClient("https://cpmianmjcxhputneygsw.supabase.co", "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm");
         
-        async function loadMenu() {
-            const { data } = await supabase.from('menu').select('*').eq('available', true).order('category');
-            const container = document.getElementById('menu-container');
-            document.getElementById('loader').style.display = 'none';
-            
-            if (!data) return;
-
-            const grouped = {};
-            data.forEach(i => {
-                if (!grouped[i.category]) grouped[i.category] = [];
-                grouped[i.category].push(i);
-            });
-
-            for (const cat in grouped) {
-                if (cat.startsWith('Vini')) {
-                    container.innerHTML += `
-                        <details class="my-6 border-b border-stone-800 pb-4">
-                            <summary class="text-2xl uppercase tracking-widest cursor-pointer">${cat}</summary>
-                            <div class="mt-4 space-y-4">
-                                ${grouped[cat].map(item => `
-                                    <div class="flex justify-between items-baseline">
-                                        <h3 class="text-lg text-stone-200 notranslate">${item.name}</h3>
-                                        <span class="font-semibold text-[#d4af37]">${item.price.toFixed(2)} €</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </details>`;
-                } else {
-                    container.innerHTML += `<h2 class="text-2xl tracking-widest uppercase text-center my-8">${cat}</h2>`;
-                    grouped[cat].forEach(item => {
-                        container.innerHTML += `
-                            <div class="mb-6">
-                                <div class="flex justify-between items-baseline">
-                                    <h3 class="text-lg text-stone-200 notranslate">${item.name}</h3>
-                                    <span class="font-semibold text-[#d4af37]">${item.price.toFixed(2)} €</span>
-                                </div>
-                                <p class="text-xs text-stone-500 mt-1">${item.description || ''}</p>
-                            </div>`;
-                    });
-                }
+        async function login() {
+            const hash = md5(document.getElementById('pass').value);
+            const { data } = await supabase.from('gestione_accessi').select('password_hash').eq('id', 1).single();
+            if (data.password_hash === hash) {
+                document.getElementById('login').classList.add('hidden');
+                document.getElementById('admin').classList.remove('hidden');
+                loadProds();
             }
         }
-        loadMenu();
+
+        async function loadProds() {
+            const { data } = await supabase.from('menu').select('*').order('category');
+            document.getElementById('p-list').innerHTML = data.map(p => `
+                <tr class="border-b">
+                    <td class="p-2">${p.name}</td><td class="p-2">${p.category}</td><td class="p-2">${p.price}€</td>
+                    <td class="p-2"><button onclick="del(${p.id})" class="text-red-500">ELIMINA</button></td>
+                </tr>`).join('');
+        }
+
+        async function saveProd(e) {
+            e.preventDefault();
+            await supabase.from('menu').insert([{
+                name: document.getElementById('p-name').value,
+                category: document.getElementById('p-cat').value,
+                price: parseFloat(document.getElementById('p-price').value),
+                available: true
+            }]);
+            loadProds();
+        }
+
+        async function del(id) { await supabase.from('menu').delete().eq('id', id); loadProds(); }
     </script>
 </body>
 </html>
