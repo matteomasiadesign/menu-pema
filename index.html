@@ -60,7 +60,7 @@
         </div>
     </header>
 
-    <!-- Barra delle Categorie Sticky -->
+    <!-- Barra delle Categorie Sticky a top-0 -->
     <div class="border-b border-stone-900 bg-dark-950/95 premium-blur sticky top-0 z-40 shadow-xl">
         <div id="category-scroll" class="max-w-xl mx-auto px-4 py-3.5 flex gap-6 overflow-x-auto no-scrollbar justify-start items-center"></div>
     </div>
@@ -115,7 +115,7 @@
     <script>
         const SUPABASE_URL = "https://cpmianmjcxhputneygsw.supabase.co";
         const SUPABASE_KEY = "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm";
-        const apiKey = ""; // Inserire qui la chiave API Gemini per traduzione AI se disponibile
+        const apiKey = ""; // Inserire qui la chiave API Gemini se necessaria
         
         let supabaseClient;
         let menuItems = [];
@@ -142,39 +142,54 @@
                    lowerCat.includes('dessert');
         }
 
+        // Caricamento dei dati relazionali sincronizzato
         async function init() {
             try {
                 if (!supabaseClient) throw new Error("Client Supabase non disponibile.");
 
-                // Evita caricamento infinito con timeout di 6 secondi
-                const fetchPromise = Promise.all([
-                    supabaseClient.from('categories').select('*').order('sort_order', { ascending: true }),
-                    supabaseClient.from('products').select(`
+                // 1. Recupera categorie in ordine gastronomico
+                const catFetch = supabaseClient
+                    .from('categories')
+                    .select('*')
+                    .order('sort_order', { ascending: true });
+
+                // 2. Recupera prodotti uniti agli allergeni in base a sort_order
+                const prodFetch = supabaseClient
+                    .from('products')
+                    .select(`
                         *,
                         product_allergens (
                             allergen_id,
                             allergens (id, name)
                         )
-                    `).order('sort_order', { ascending: true })
-                ]);
+                    `)
+                    .order('sort_order', { ascending: true });
 
                 const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error("La connessione con il database ha superato il tempo limite.")), 6000)
+                    setTimeout(() => reject(new Error("La connessione con il database ha superato il tempo limite (Timeout).")), 6000)
                 );
 
-                const [res, _] = await Promise.race([fetchPromise, timeoutPromise]);
-                const [catRes, prodRes] = res;
+                // Eseguiamo il fetching parallelo delle risorse relazionali
+                const [catRes, prodRes] = await Promise.race([
+                    Promise.all([catFetch, prodFetch]),
+                    timeoutPromise
+                ]);
 
                 if (catRes.error) throw catRes.error;
                 if (prodRes.error) throw prodRes.error;
 
                 categoriesList = catRes.data || [];
                 
-                // Mappiamo i prodotti associando direttamente il nome testuale della categoria
+                // Mappa i prodotti associando direttamente il nome testuale della categoria e gli allergeni
                 menuItems = (prodRes.data || []).map(prod => {
                     const matchedCat = categoriesList.find(c => c.id === prod.category_id);
                     return {
-                        ...prod,
+                        id: prod.id,
+                        name: prod.name,
+                        description: prod.description,
+                        price: Number(prod.price),
+                        min_persons: prod.min_persons,
+                        price_per_person: prod.price_per_person,
                         category: matchedCat ? matchedCat.name : 'Altro',
                         allergens: prod.product_allergens ? prod.product_allergens.map(pa => pa.allergens ? pa.allergens.name : '').filter(Boolean) : []
                     };
@@ -200,9 +215,10 @@
 
         function toggleLangDropdown() { document.getElementById('lang-dropdown').classList.toggle('hidden'); }
 
+        // Funzione per la traduzione ad alta performance client-side d'emergenza (senza API Key)
         function translateLocal(targetLang) {
             const dictionary = {
-                // Traduzioni dei piatti di base e parole chiave del menù reale di PEMA
+                // Traduzioni dei piatti di base e parole chiave
                 "degustazione di mare": { en: "Seafood Tasting Menu", fr: "Dégustation de la Mer", de: "Meeresfrüchte-Verkostung" },
                 "crudo del giorno, asparago bianco e ajo blanco marino": { en: "Raw catch of the day, white asparagus and marine ajo blanco", fr: "Cru du jour, asperge blanche et ajo blanco marin", de: "Rohr Tagesfang, weißer Spargel und maritimes Ajo Blanco" },
                 "tataki del giorno, tuorlo d'uovo marinato, peperone e pinoli": { en: "Tataki of the day, marinated egg yolk, bell pepper and pine nuts", fr: "Tataki du jour, jaune d'œuf mariné, poivron et pignons", de: "Tataki des Tages, mariniertes Eigelb, Paprika und Pinienkerne" },
@@ -218,7 +234,7 @@
                 "seppia alla brace, pistacchio bruciato e porro": { en: "Grilled cuttlefish, burnt pistachio and leek", fr: "Seiche au barbecue, pistache brûlée et poireau", de: "Gegrillter Tintenfisch, verbrannte Pistazie und Lauch" },
                 "polpo alla brace, olio piccante e patate": { en: "Grilled octopus, spicy oil and potatoes", fr: "Poulpe grillé, huile piquante et pommes de terre", de: "Gegrillte Krake, scharfes Öl und Kartoffeln" },
                 "agnello, salsa al rognone e vino anghelu ruju, sedano rapa e caffè": { en: "Lamb, kidney sauce and Anghelu Ruju wine, celeriac and coffee", fr: "Agneau, sauce aux rognons et vin Anghelu Ruju, céleri-rave et café", de: "Lamm, Nierensauce und Anghelu Ruju Wein, Knollenzieste und Kaffee" },
-                "pithiviers di piccione, tartufo nero e verza": { en: "Pigeon pithiviers, black truffle and savoy cabbage", fr: "Pithiviers de pigeon, truffe noire et chou frisé", de: "Tauben-Pithiviers, schwarzer Trüffel und Wirsing" },
+                "pithiviers di piccione, tartufo nero e verza": { en: "Pigeon pithiviers, black truffle and savoy cabbage", fr: "Pigeon pithiviers, truffe noire et chou frisé", de: "Tauben-Pithiviers, schwarzer Trüffel und Wirsing" },
                 "cipolla cotta sotto la cenere": { en: "Onion cooked under the ashes", fr: "Oignon cuit sous la cendre", de: "In der Asche gegarte Zwiebel" },
                 "patata alla brace": { en: "Grilled potato", fr: "Pomme de terre braisée", de: "Gegrillte Kartoffel" },
                 "white party": { en: "White Party Dessert", fr: "White Party", de: "White Party Dessert" },
@@ -233,7 +249,7 @@
                 return {
                     id: item.id,
                     name: (matched && matched[targetLang]) ? matched[targetLang] : item.name,
-                    description: item.description // Mantiene la descrizione originale o traduce i termini generali se necessario
+                    description: item.description
                 };
             });
         }
@@ -252,7 +268,6 @@
                 return;
             }
 
-            // Traduzione fallback locale immediata se non è configurata la chiave di Gemini
             if (!apiKey) {
                 console.warn("Chiave API Gemini mancante. Traduzione locale abilitata.");
                 translationsCache[langCode] = translateLocal(langCode);
@@ -369,7 +384,7 @@
                 categories.push('Carta dei Vini');
             }
 
-            // Ordinamento delle portate con priorità enogastronomica
+            // Ordinamento prioritatio per categorie gastronomiche e vini
             const CATEGORY_ORDER = [
                 'Tutti',
                 'Per Iniziare',
@@ -440,15 +455,19 @@
             filtered.forEach(item => { if (!grouped[item.category]) grouped[item.category] = []; grouped[item.category].push(item); });
             const currentTranslationList = translationsCache[currentLang] || [];
 
-            // Ordinamento delle sezioni dei vini in coda rispetto alle portate principali
+            // Ordiniamo le categorie visualizzate: i cibi prima, i vini sempre raggruppati in fondo se siamo su "Tutti"
             const sortedCategories = Object.keys(grouped).sort((a, b) => {
                 const aIsWine = isWineCategory(a);
                 const bIsWine = isWineCategory(b);
                 if (aIsWine && !bIsWine) return 1;
                 if (!aIsWine && bIsWine) return -1;
                 
-                // Ordine alfabetico o di sort_order per le categorie se disponibili
-                return a.localeCompare(b);
+                // Conserva l'ordine dettato dalla tabella categories del database
+                const catA = categoriesList.find(c => c.name === a);
+                const catB = categoriesList.find(c => c.name === b);
+                const orderA = catA ? catA.sort_order : 999;
+                const orderB = catB ? catB.sort_order : 999;
+                return orderA - orderB;
             });
 
             sortedCategories.forEach(category => {
@@ -456,7 +475,7 @@
                 const section = document.createElement('section');
                 const catTitle = getCategoryTranslation(category, currentLang);
                 
-                // Se è una categoria di vini, la rendiamo un bellissimo accordion ad impatto visivo premium
+                // Se è una categoria di vini, la rendiamo un bellissimo accordion
                 if (isWineGroup) {
                     section.className = "my-6 border-b border-stone-900 pb-4 animate-fade-in";
                     section.innerHTML = `
@@ -481,7 +500,7 @@
                 container.appendChild(section);
                 const itemsContainer = document.getElementById(`cat-items-${category.replace(/[^a-zA-Z0-9]/g, '')}`);
 
-                // Ordinamento interno dei prodotti in base a sort_order
+                // Ordinamento interno dei prodotti in base alla colonna "sort_order"
                 grouped[category].sort((a, b) => {
                     const posA = (a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : 99999;
                     const posB = (b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : 99999;
@@ -493,15 +512,15 @@
                     const nameToShow = translation ? translation.name : item.name;
                     const descToShow = translation ? translation.description : item.description;
 
-                    // Gestione di piatti speciali: prezzo per persona e minimo persone
+                    // Gestione "Prezzo a Persona" e "Minimo Persone" relazionale
                     let priceSuffix = item.price_per_person ? " / pers." : "";
                     let minPersonsBadge = item.min_persons ? `<span class="bg-gold-500/10 text-gold-400 border border-gold-500/20 text-[9px] font-bold px-2 py-0.5 rounded-full">Min. ${item.min_persons} persone</span>` : "";
 
-                    // Badge allergeni
+                    // Generazione dei badge degli allergeni reali presi dal DB
                     let allergenBadge = "";
                     if (item.allergens && item.allergens.length > 0) {
                         allergenBadge = `<div class="mt-2.5 flex flex-wrap gap-1.5 items-center">
-                            <span class="text-[9px] text-stone-500 uppercase tracking-widest font-semibold flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> Allergene:</span>
+                            <span class="text-[9px] text-stone-500 uppercase tracking-widest font-semibold flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation text-[9px]"></i> Allergene:</span>
                             ${item.allergens.map(al => `<span class="bg-stone-900 border border-stone-850 text-stone-400 text-[9px] px-2 py-0.5 rounded font-mono">${al}</span>`).join('')}
                         </div>`;
                     }
@@ -515,7 +534,7 @@
                             <span class="font-serif text-sm sm:text-base font-semibold text-gold-500 tracking-widest">${item.price.toFixed(2)}${priceSuffix}</span>
                         </div>
                         ${descToShow ? `<p class="text-xs sm:text-sm text-stone-400 mt-2 font-light leading-relaxed max-w-2xl font-sans">${descToShow}</p>` : ''}
-                        <div class="mt-2.5 flex items-center gap-2">
+                        <div class="mt-2 flex items-center gap-2">
                             ${minPersonsBadge}
                         </div>
                         ${allergenBadge}
