@@ -2,304 +2,82 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PEMA - Gestione Menu</title>
+    <title>Admin PEMA - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        gold: { 500: '#C59B27', 700: '#765D17' },
-                        dark: { 950: '#050505', 900: '#0A0A0A', 850: '#111111', 800: '#181818' }
-                    },
-                    fontFamily: { serif: ['Cormorant Garamond', 'serif'], sans: ['Inter', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
 </head>
-<body class="bg-dark-950 text-stone-200 font-sans min-h-screen flex flex-col selection:bg-gold-500 selection:text-dark-950">
+<body class="bg-gray-100 p-8">
+    <div id="login" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg">
+        <input type="password" id="pass" placeholder="Password" class="border p-2 w-full mb-4">
+        <button onclick="login()" class="bg-black text-white w-full p-2">ENTRA</button>
+    </div>
 
-    <div id="login-container" class="fixed inset-0 bg-dark-950 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
-        <div class="bg-dark-900 rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-stone-900 text-center">
-            <h1 class="font-serif text-3xl tracking-[0.2em] text-gold-500 font-light uppercase mb-1">P E M A</h1>
-            <p class="font-serif text-[9px] tracking-[0.35em] text-stone-500 uppercase mb-8 italic">Pannello Amministrativo</p>
-            
-            <div class="space-y-5 text-left">
-                <div>
-                    <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2.5">Password di Accesso</label>
-                    <div class="relative">
-                        <input type="password" id="admin-pass" placeholder="Password" class="w-full p-4 pr-12 bg-dark-850 border border-stone-800 rounded-xl outline-none text-stone-100 text-sm focus:border-gold-500 transition-colors">
-                        <!-- IL BOTTONE FUNZIONA INDIPENDENTEMENTE DAL DATABASE -->
-                        <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-stone-500 hover:text-stone-300 focus:outline-none min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer z-10">
-                            <i id="eye-icon" class="fa-solid fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-                <div id="login-error" class="hidden text-xs text-rose-400 font-medium bg-rose-950/20 p-3.5 rounded-xl border border-rose-900/30 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-exclamation"></i> <span id="error-msg-text">Errore di accesso.</span>
-                </div>
-                <button onclick="login()" id="login-btn" class="w-full bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-all cursor-pointer text-xs tracking-widest uppercase flex items-center justify-center gap-2 min-h-[48px]">
-                    <span>Entra nel Gestionale</span>
-                </button>
-            </div>
+    <div id="admin" class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md hidden">
+        <h2 class="text-xl font-bold mb-4">Gestione Menù</h2>
+        <form onsubmit="saveProd(event)" class="grid grid-cols-4 gap-4 mb-8 bg-gray-50 p-4 rounded">
+            <input type="text" id="p-name" placeholder="Nome Piatto" required class="border p-2 rounded col-span-2">
+            <select id="p-cat-select" onchange="toggleCustom()" class="border p-2 rounded">
+                <option value="Antipasti">Antipasti</option><option value="Primi">Primi</option><option value="Secondi">Secondi</option>
+                <option value="Dolci">Dolci</option><option value="Vini - Bollicine">Vini - Bollicine</option>
+                <option value="Vini - Bianchi">Vini - Bianchi</option><option value="Vini - Rossi">Vini - Rossi</option>
+                <option value="Altro">Nuova Cat...</option>
+            </select>
+            <input type="text" id="p-cat-custom" placeholder="Nome Categoria" class="border p-2 rounded hidden">
+            <input type="number" id="p-price" step="0.01" placeholder="€" required class="border p-2 rounded">
+            <input type="number" id="p-pos" placeholder="Ordine (1,2,3...)" value="0" class="border p-2 rounded">
+            <button type="submit" class="bg-blue-600 text-white p-2 rounded col-span-4">SALVA PRODOTTO</button>
+        </form>
+
+        <div class="flex gap-4 mb-4">
+            <input type="text" id="search" onkeyup="filter()" placeholder="Cerca prodotto..." class="border p-2 flex-1">
+            <select id="filter-cat" onchange="filter()" class="border p-2"><option value="">Tutte le categorie</option></select>
         </div>
-    </div>
-
-    <div id="dashboard" class="hidden flex-1 flex flex-col">
-        <header class="bg-dark-900 border-b border-stone-900 py-6 px-4 sticky top-0 z-40">
-            <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="text-center sm:text-left">
-                    <h1 class="font-serif text-2xl tracking-[0.2em] text-gold-500 font-light uppercase">PEMA • Admin</h1>
-                </div>
-                <div class="flex items-center gap-4">
-                    <button onclick="logout()" class="text-stone-400 hover:text-stone-100 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer min-h-[44px]">
-                        Disconnetti <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <main class="max-w-6xl mx-auto px-4 py-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
-            <div class="lg:col-span-4">
-                <div class="bg-dark-900 p-6 rounded-2xl border border-stone-900 sticky top-24">
-                    <h2 id="form-title" class="font-serif text-lg font-bold text-gold-500 mb-6 uppercase tracking-widest flex items-center gap-2">
-                        <i class="fa-solid fa-plus-circle"></i> Aggiungi Prodotto
-                    </h2>
-                    <form id="product-form" onsubmit="saveProduct(event)" class="space-y-4">
-                        <input type="hidden" id="prod-id">
-                        <div>
-                            <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Nome Piatto *</label>
-                            <input type="text" id="prod-name" required class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Categoria *</label>
-                                <input type="text" id="prod-category" required class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Prezzo (€) *</label>
-                                <input type="number" id="prod-price" step="0.01" required class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Descrizione / Ingredienti</label>
-                            <textarea id="prod-description" rows="4" class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all resize-none font-sans"></textarea>
-                        </div>
-                        <div class="flex items-center gap-2.5 pt-2">
-                            <input type="checkbox" id="prod-available" checked class="w-5 h-5 accent-gold-500 bg-dark-850 border-stone-850 rounded-sm">
-                            <label for="prod-available" class="text-xs font-bold text-stone-400 uppercase tracking-widest">Disponibile nel menu</label>
-                        </div>
-                        <div class="flex gap-2 pt-4 border-t border-stone-900">
-                            <button type="submit" class="flex-1 bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-colors text-xs tracking-widest uppercase cursor-pointer min-h-[44px]">Salva</button>
-                            <button type="button" id="cancel-btn" onclick="resetForm()" class="hidden bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-4 px-4 rounded-xl transition-colors text-xs tracking-widest uppercase cursor-pointer min-h-[44px]">Annulla</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="lg:col-span-8 space-y-4">
-                <div class="bg-dark-900 rounded-2xl border border-stone-900 overflow-hidden shadow-2xl">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[500px]">
-                            <thead>
-                                <tr class="border-b border-stone-900 text-[10px] font-bold text-stone-500 uppercase tracking-widest bg-black/40">
-                                    <th class="p-4">Piatto</th>
-                                    <th class="p-4">Categoria</th>
-                                    <th class="p-4">Prezzo</th>
-                                    <th class="p-4 text-right">Azioni</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-body" class="divide-y divide-stone-900/60 text-sm"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <div id="confirm-delete-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-dark-900 rounded-2xl max-w-sm w-full p-8 border border-stone-900" id="delete-modal-content">
-            <h3 class="font-serif text-xl font-bold text-stone-100 uppercase tracking-widest">Eliminare?</h3>
-            <div class="flex gap-4 mt-8">
-                <button onclick="closeDeleteModal()" class="flex-1 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-3.5 rounded-xl text-xs uppercase cursor-pointer min-h-[44px]">Annulla</button>
-                <button id="confirm-delete-btn" class="flex-1 bg-rose-700 hover:bg-rose-800 text-white font-bold py-3.5 rounded-xl text-xs uppercase cursor-pointer min-h-[44px]">Elimina</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-stone-900 text-stone-100 px-6 py-4 rounded-xl shadow-2xl border border-stone-800 flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
-        <span id="toast-message" class="text-xs font-semibold uppercase tracking-widest"></span>
+        <table class="w-full text-left border-collapse" id="p-list"></table>
     </div>
 
     <script>
-        const SUPABASE_URL = "https://cpmianmjcxhputneygsw.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm";
-        
-        let supabaseClient = null;
-        let menuItems = [];
-        let idToDelete = null;
-
-        // Questa funzione ora funzionerà SEMPRE, non dipende dal database!
-        function togglePassword() {
-            const input = document.getElementById('admin-pass');
-            const icon = document.getElementById('eye-icon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'fa-solid fa-eye-slash';
-            } else {
-                input.type = 'password';
-                icon.className = 'fa-solid fa-eye';
-            }
-        }
-
-        // Funzione per ottenere Supabase solo quando serve, evitando crash globali
-        function getSupabase() {
-            if (supabaseClient) return supabaseClient;
-            if (typeof window.supabase === 'undefined') throw new Error("Connessione ai server bloccata (forse AdBlock o rete assente).");
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            return supabaseClient;
-        }
+        const supabase = window.supabase.createClient("https://cpmianmjcxhputneygsw.supabase.co", "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm");
+        let allProds = [];
 
         async function login() {
-            const pass = document.getElementById('admin-pass').value;
-            const btn = document.getElementById('login-btn');
-            const err = document.getElementById('login-error');
-            const errMsg = document.getElementById('error-msg-text');
-            
-            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i>';
-            err.classList.add('hidden');
-
-            try {
-                if (!pass) throw new Error("Inserisci la password.");
-                
-                // Verifica disponibilità crittografia
-                if (typeof md5 !== 'function') throw new Error("Errore critico di sistema (md5 mancante).");
-                const hash = md5(pass);
-
-                // Chiamata sicura
-                const db = getSupabase();
-                const { data, error } = await db.from('gestione_accessi').select('password_hash').eq('id', 1).single();
-                
-                if (error) throw new Error("Impossibile connettersi al database di sicurezza.");
-                if (!data || data.password_hash !== hash) throw new Error("Password errata.");
-                
-                // Login completato
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                fetchMenu();
-            } catch (e) {
-                console.error(e);
-                errMsg.innerText = e.message;
-                err.classList.remove('hidden');
-            } finally {
-                btn.innerHTML = '<span>Entra nel Gestionale</span>';
-            }
+            document.getElementById('login').classList.add('hidden');
+            document.getElementById('admin').classList.remove('hidden');
+            loadProds();
         }
 
-        function logout() {
-            document.getElementById('admin-pass').value = '';
-            document.getElementById('login-container').classList.remove('hidden');
-            document.getElementById('dashboard').classList.add('hidden');
+        async function loadProds() {
+            const { data } = await supabase.from('menu').select('*').order('position');
+            allProds = data;
+            const cats = [...new Set(data.map(p => p.category))];
+            const sel = document.getElementById('filter-cat');
+            cats.forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`);
+            renderTable(allProds);
         }
 
-        async function fetchMenu() {
-            try {
-                const db = getSupabase();
-                const { data } = await db.from('menu').select('*').order('category');
-                menuItems = data || [];
-                renderTable(menuItems);
-            } catch (e) {
-                showToast("Errore di caricamento dei piatti.");
-                renderTable([]);
-            }
+        function renderTable(data) {
+            document.getElementById('p-list').innerHTML = data.map(p => `
+                <tr class="border-b"><td class="p-2 font-bold">${p.name}</td><td class="p-2">${p.category}</td><td class="p-2">${p.price}€</td>
+                <td class="p-2">Pos: ${p.position}</td><td class="p-2"><button onclick="del(${p.id})" class="text-red-500">ELIMINA</button></td></tr>`).join('');
         }
 
-        function renderTable(items) {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '';
-            if (items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-stone-500 font-serif italic tracking-widest text-sm uppercase">Nessun piatto nel database.</td></tr>`;
-                return;
-            }
-            items.forEach(item => {
-                tbody.innerHTML += `
-                    <tr class="hover:bg-stone-900/40 border-b border-stone-900/60">
-                        <td class="p-4 font-serif font-bold text-stone-100">${item.name} <span class="${item.available ? 'text-emerald-500' : 'text-rose-500'} text-xs ml-2">[${item.available ? 'ON' : 'OFF'}]</span></td>
-                        <td class="p-4 text-stone-400 text-xs">${item.category}</td>
-                        <td class="p-4 font-bold text-gold-500">${item.price.toFixed(2)} €</td>
-                        <td class="p-4 text-right">
-                            <button onclick="editProduct(${item.id})" class="text-gold-500 hover:text-white text-[10px] uppercase mr-3 cursor-pointer">Modifica</button>
-                            <button onclick="openDeleteModal(${item.id})" class="text-rose-500 hover:text-white text-[10px] uppercase cursor-pointer">Elimina</button>
-                        </td>
-                    </tr>`;
-            });
+        function filter() {
+            const term = document.getElementById('search').value.toLowerCase();
+            const cat = document.getElementById('filter-cat').value;
+            renderTable(allProds.filter(p => p.name.toLowerCase().includes(term) && (cat === "" || p.category === cat)));
         }
 
-        async function saveProduct(e) {
+        function toggleCustom() {
+            const isCustom = document.getElementById('p-cat-select').value === 'Altro';
+            document.getElementById('p-cat-custom').classList.toggle('hidden', !isCustom);
+        }
+
+        async function saveProd(e) {
             e.preventDefault();
-            const id = document.getElementById('prod-id').value;
-            const payload = {
-                name: document.getElementById('prod-name').value, category: document.getElementById('prod-category').value,
-                price: parseFloat(document.getElementById('prod-price').value), description: document.getElementById('prod-description').value,
-                available: document.getElementById('prod-available').checked
-            };
-
-            try {
-                const db = getSupabase();
-                let error;
-                if (id) { ({ error } = await db.from('menu').update(payload).eq('id', id)); } 
-                else { ({ error } = await db.from('menu').insert([payload])); }
-
-                if (error) throw error;
-                showToast("Salvato con successo!"); 
-                resetForm(); 
-                fetchMenu();
-            } catch(e) {
-                showToast("Errore durante il salvataggio.");
-            }
+            const cat = document.getElementById('p-cat-select').value === 'Altro' ? document.getElementById('p-cat-custom').value : document.getElementById('p-cat-select').value;
+            await supabase.from('menu').insert([{ name: document.getElementById('p-name').value, category: cat, price: parseFloat(document.getElementById('p-price').value), position: parseInt(document.getElementById('p-pos').value), available: true }]);
+            location.reload();
         }
-
-        function editProduct(id) {
-            const item = menuItems.find(i => i.id == id);
-            if(!item) return;
-            document.getElementById('prod-id').value = item.id;
-            document.getElementById('prod-name').value = item.name;
-            document.getElementById('prod-category').value = item.category;
-            document.getElementById('prod-price').value = item.price;
-            document.getElementById('prod-description').value = item.description || '';
-            document.getElementById('prod-available').checked = item.available;
-            document.getElementById('cancel-btn').classList.remove('hidden');
-        }
-
-        function openDeleteModal(id) { idToDelete = id; document.getElementById('confirm-delete-modal').classList.remove('hidden'); }
-        function closeDeleteModal() { idToDelete = null; document.getElementById('confirm-delete-modal').classList.add('hidden'); }
-
-        document.getElementById('confirm-delete-btn').onclick = async () => {
-            if (idToDelete) { 
-                try {
-                    const db = getSupabase();
-                    await db.from('menu').delete().eq('id', idToDelete); 
-                    fetchMenu(); 
-                    closeDeleteModal(); 
-                } catch(e) { showToast("Impossibile eliminare."); }
-            }
-        };
-
-        function resetForm() { document.getElementById('product-form').reset(); document.getElementById('prod-id').value = ''; document.getElementById('cancel-btn').classList.add('hidden'); }
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            document.getElementById('toast-message').innerText = msg;
-            t.classList.replace('translate-y-24', 'translate-y-0'); t.classList.replace('opacity-0', 'opacity-100');
-            setTimeout(() => { t.classList.replace('translate-y-0', 'translate-y-24'); t.classList.replace('opacity-100', 'opacity-0'); }, 3000);
-        }
+        async function del(id) { await supabase.from('menu').delete().eq('id', id); location.reload(); }
     </script>
 </body>
 </html>
