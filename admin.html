@@ -30,6 +30,7 @@
 </head>
 <body class="bg-dark-950 text-stone-200 font-sans min-h-screen flex flex-col selection:bg-gold-500 selection:text-dark-950">
 
+    <!-- Schermata di Login -->
     <div id="login-container" class="fixed inset-0 bg-dark-950 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
         <div class="bg-dark-900 rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-stone-900 text-center">
             <h1 class="font-serif text-3xl tracking-[0.2em] text-gold-500 font-light uppercase mb-1">P E M A</h1>
@@ -55,39 +56,25 @@
         </div>
     </div>
 
-    <div id="sql-notice-modal" class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-dark-900 rounded-2xl max-w-md w-full p-8 border border-stone-800 text-center">
-            <i class="fa-solid fa-database text-3xl text-gold-500 mb-4 animate-bounce"></i>
-            <h3 class="font-serif text-2xl font-bold text-stone-100 uppercase tracking-widest mb-2">Abilita Ordinamento</h3>
-            <p class="text-stone-400 text-xs leading-relaxed font-light mb-6">
-                Per salvare l'ordine personalizzato dei piatti, è necessario aggiungere la colonna <code class="bg-black text-gold-400 px-1.5 py-0.5 rounded text-[10px]">position</code> su Supabase.<br>Copia ed esegui questa riga all'interno dell'**SQL Editor** di Supabase:
-            </p>
-            <div class="bg-black/80 rounded-xl p-3 text-left font-mono text-[10px] text-stone-300 relative border border-stone-850 mb-6">
-                <span class="block select-all" id="sql-code-text">ALTER TABLE menu ADD COLUMN position INT DEFAULT 0;</span>
-                <button onclick="copySqlCode()" class="absolute right-2.5 top-2.5 bg-stone-900 hover:bg-stone-800 text-gold-500 border border-stone-850 p-1 px-2 rounded font-sans text-[9px] uppercase tracking-widest transition-all">Copia</button>
-            </div>
-            <div class="flex gap-4">
-                <button onclick="closeSqlModal()" class="flex-1 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-3 rounded-xl transition-all text-xs tracking-wider uppercase">Chiudi</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Feedback Toast -->
     <div id="toast" class="fixed bottom-6 right-6 z-50 bg-stone-900 text-stone-100 px-6 py-4 rounded-xl shadow-2xl border border-stone-800 flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
         <span id="toast-icon" class="text-gold-500"><i class="fa-solid fa-circle-check"></i></span>
         <span id="toast-message" class="text-xs font-semibold uppercase tracking-widest"></span>
     </div>
 
+    <!-- Modale Eliminazione -->
     <div id="confirm-delete-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-dark-900 rounded-2xl max-w-sm w-full p-8 border border-stone-900 transform scale-95 opacity-0 transition-all duration-300" id="delete-modal-content">
             <h3 class="font-serif text-xl font-bold text-stone-100 uppercase tracking-widest">Eliminare questo piatto?</h3>
             <p class="text-stone-400 text-xs mt-3 leading-relaxed font-light">L'azione rimuoverà permanentemente il piatto selezionato dal menu digitale di PEMA.</p>
             <div class="flex gap-4 mt-8">
                 <button onclick="closeDeleteModal()" class="flex-1 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-3.5 rounded-xl transition-all text-xs tracking-wider uppercase cursor-pointer min-h-[44px]">Annulla</button>
-                <button id="confirm-delete-btn" onclick="confirmDelete()" class="flex-1 bg-rose-700 hover:bg-rose-800 text-white font-bold py-3.5 rounded-xl transition-all text-xs tracking-wider uppercase cursor-pointer min-h-[44px]">Elimina</button>
+                <button id="confirm-delete-btn" class="flex-1 bg-rose-700 hover:bg-rose-800 text-white font-bold py-3.5 rounded-xl transition-all text-xs tracking-wider uppercase cursor-pointer min-h-[44px]">Elimina</button>
             </div>
         </div>
     </div>
 
+    <!-- Dashboard -->
     <div id="dashboard" class="hidden flex-1 flex flex-col">
         <header class="bg-dark-900 border-b border-stone-900 py-6 px-4 sticky top-0 z-40">
             <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -128,25 +115,40 @@
                             <input type="hidden" id="prod-id">
                             <div>
                                 <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Nome Piatto *</label>
-                                <input type="text" id="prod-name" required placeholder="es. Gnocchi di Patata Viola..." class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
+                                <input type="text" id="prod-name" required placeholder="es. Degustazione di mare..." class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Categoria *</label>
-                                    <input type="text" id="prod-category" required placeholder="es. Primi" class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
+                                    <select id="prod-category" required class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans cursor-pointer">
+                                        <!-- Caricate dinamicamente -->
+                                    </select>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Prezzo (€) *</label>
                                     <input type="number" id="prod-price" step="0.01" required placeholder="0.00" class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
                                 </div>
                             </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Minimo Persone</label>
+                                    <input type="number" id="prod-min-persons" placeholder="es. 2" class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
+                                </div>
+                                <div class="flex items-center gap-2.5 pt-6">
+                                    <input type="checkbox" id="prod-per-person" class="w-5 h-5 accent-gold-500 bg-dark-850 border-stone-850 rounded-sm">
+                                    <label for="prod-per-person" class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Prezzo a Persona</label>
+                                </div>
+                            </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Descrizione / Ingredienti</label>
-                                <textarea id="prod-description" rows="4" placeholder="Composizione del piatto..." class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all resize-none font-sans"></textarea>
+                                <textarea id="prod-description" rows="3" placeholder="Composizione del piatto..." class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all resize-none font-sans"></textarea>
                             </div>
-                            <div class="flex items-center gap-2.5 pt-2">
-                                <input type="checkbox" id="prod-available" checked class="w-5 h-5 accent-gold-500 bg-dark-850 border-stone-850 rounded-sm">
-                                <label for="prod-available" class="text-xs font-bold text-stone-400 uppercase tracking-widest">Disponibile nel menu</label>
+                            <!-- GRIGLIA ALLERGENI INTERATTIVA -->
+                            <div>
+                                <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Allergeni Presenti</label>
+                                <div id="allergens-grid" class="grid grid-cols-2 gap-2 bg-dark-850 border border-stone-850 p-3.5 rounded-xl max-h-32 overflow-y-auto no-scrollbar">
+                                    <!-- Popolato dinamicamente -->
+                                </div>
                             </div>
                             <div class="flex gap-2 pt-4 border-t border-stone-900">
                                 <button type="submit" class="flex-1 bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-colors text-xs tracking-widest uppercase cursor-pointer min-h-[44px]">Salva Piatto</button>
@@ -156,6 +158,7 @@
                     </div>
                 </div>
 
+                <!-- Colonna Tabella dei Piatti -->
                 <div class="lg:col-span-8 space-y-4">
                     <div class="flex bg-dark-900 px-5 py-4 border border-stone-900 rounded-2xl items-center gap-3.5 shadow-lg">
                         <i class="fa-solid fa-magnifying-glass text-stone-500"></i>
@@ -168,7 +171,6 @@
                                     <tr class="border-b border-stone-900 text-[10px] font-bold text-stone-500 uppercase tracking-widest bg-black/40">
                                         <th class="p-4">Piatto</th>
                                         <th class="p-4">Categoria</th>
-                                        <th class="p-4 text-center">Disponibilità</th>
                                         <th class="p-4">Prezzo</th>
                                         <th class="p-4 text-right">Azioni</th>
                                     </tr>
@@ -180,6 +182,7 @@
                 </div>
             </div>
 
+            <!-- SEZIONE 2: INTERFACCIA RIORDINAMENTO PORTATE -->
             <div id="section-ordinamento" class="hidden bg-dark-900 rounded-2xl border border-stone-900 p-6 md:p-8 max-w-3xl mx-auto shadow-2xl">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-850 pb-6 mb-6">
                     <div>
@@ -188,11 +191,13 @@
                     </div>
                     <!-- Select Categoria Dinamico -->
                     <select id="reorder-cat-select" onchange="loadReorderCategory()" class="bg-dark-850 border border-stone-800 p-3.5 rounded-xl text-stone-100 text-xs font-bold uppercase tracking-wider focus:border-gold-500 outline-none cursor-pointer">
+                        <!-- Popolato dinamicamente -->
                     </select>
                 </div>
 
                 <!-- Elenco Piatti Ordinabile -->
                 <div id="reorder-list-container" class="space-y-3">
+                    <!-- Elementi renderizzati dinamicamente -->
                 </div>
             </div>
 
@@ -205,6 +210,8 @@
         
         let supabaseClient;
         let menuItems = [];
+        let categoriesList = [];
+        let allergensList = [];
         let idToDelete = null;
 
         try {
@@ -251,6 +258,7 @@
             loadReorderCategory();
         }
 
+        // Render dell'elenco ordinabile
         function loadReorderCategory() {
             const selectVal = document.getElementById('reorder-cat-select').value;
             const container = document.getElementById('reorder-list-container');
@@ -258,11 +266,10 @@
 
             if (!selectVal) return;
 
-            // Filtro e ordino localmente i prodotti per la categoria selezionata
             const categoryItems = menuItems.filter(i => i.category === selectVal);
             categoryItems.sort((a, b) => {
-                const posA = (a.position !== undefined && a.position !== null) ? a.position : 99999;
-                const posB = (b.position !== undefined && b.position !== null) ? b.position : 99999;
+                const posA = (a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : 99999;
+                const posB = (b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : 99999;
                 return posA - posB;
             });
 
@@ -282,7 +289,7 @@
                         <span class="font-serif font-bold text-gold-500/80 text-sm">#${index + 1}</span>
                         <div>
                             <h4 class="font-serif font-bold text-stone-100">${item.name}</h4>
-                            <p class="text-[10px] text-stone-500 font-mono mt-0.5">Pos: ${item.position || 0}</p>
+                            <p class="text-[10px] text-stone-500 font-mono mt-0.5">Pos: ${item.sort_order || 0}</p>
                         </div>
                     </div>
                     <div class="flex gap-2">
@@ -298,77 +305,43 @@
             });
         }
 
+        // Logica di swap sequenza mappando sulla colonna sort_order
         async function swapOrder(currIdx, targetIdx, categoryName) {
             const categoryItems = menuItems.filter(i => i.category === categoryName);
             categoryItems.sort((a, b) => {
-                const posA = (a.position !== undefined && a.position !== null) ? a.position : 99999;
-                const posB = (b.position !== undefined && b.position !== null) ? b.position : 99999;
+                const posA = (a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : 99999;
+                const posB = (b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : 99999;
                 return posA - posB;
             });
 
             const currentItem = categoryItems[currIdx];
             const targetItem = categoryItems[targetIdx];
 
-            // Calcola le nuove posizioni sequenziali
             const newPosCurrent = targetIdx;
             const newPosTarget = currIdx;
 
-            // Aggiorna localmente l'ordine in memoria per feedback istantaneo
-            currentItem.position = newPosCurrent;
-            targetItem.position = newPosTarget;
+            currentItem.sort_order = newPosCurrent;
+            targetItem.sort_order = newPosTarget;
 
-            loadReorderCategory(); // Render immediato
+            loadReorderCategory();
             
             if (!supabaseClient) return;
 
-            // Transazione asincrona parallela
-            const updateCurrent = supabaseClient.from('menu').update({ position: newPosCurrent }).eq('id', currentItem.id);
-            const updateTarget = supabaseClient.from('menu').update({ position: newPosTarget }).eq('id', targetItem.id);
+            const updateCurrent = supabaseClient.from('products').update({ sort_order: newPosCurrent }).eq('id', currentItem.id);
+            const updateTarget = supabaseClient.from('products').update({ sort_order: newPosTarget }).eq('id', targetItem.id);
 
             const [res1, res2] = await Promise.all([updateCurrent, updateTarget]);
 
             if (res1.error || res2.error) {
-                const err = res1.error || res2.error;
-                // Se la colonna 'position' non esiste, intercetta l'errore SQL '42703'
-                if (err.code === '42703' || err.message.includes('position')) {
-                    showSqlNoticeModal();
-                } else {
-                    showToast("Errore durante il salvataggio della sequenza", false);
-                }
-                fetchMenu(); // Sincronizza per ripristinare lo stato coerente
+                showToast("Errore durante il salvataggio della sequenza", false);
+                fetchMenu();
             } else {
                 showToast("Sequenza aggiornata con successo!");
-                fetchMenu(); // Sincronizza i dati complessivi
+                fetchMenu();
             }
         }
 
-        // Funzioni helper per la Modale SQL d'emergenza
-        function showSqlNoticeModal() {
-            document.getElementById('sql-notice-modal').classList.remove('hidden');
-        }
-
-        function closeSqlModal() {
-            document.getElementById('sql-notice-modal').classList.add('hidden');
-        }
-
-        function copySqlCode() {
-            const code = document.getElementById('sql-code-text').innerText;
-            
-            // Creazione di un'area di testo fittizia per massimizzare la compatibilità con browser mobile
-            const dummy = document.createElement("textarea");
-            document.body.appendChild(dummy);
-            dummy.value = code;
-            dummy.select();
-            try {
-                document.execCommand('copy');
-                showToast("Codice copiato negli appunti!");
-            } catch (err) {
-                showToast("Errore nella copia del codice.", false);
-            }
-            document.body.removeChild(dummy);
-        }
-
-        // 1. Funzione Reale Mostra/Nascondi Password
+        // Funzione Reale Mostra/Nascondi Password
         function togglePassword() {
             const passInput = document.getElementById('admin-pass');
             const eyeIcon = document.getElementById('eye-icon');
@@ -384,6 +357,7 @@
             }
         }
 
+        // Login con verifica di sicurezza crittografata MD5
         async function login(e) {
             if (e && e.preventDefault) e.preventDefault(); 
             const inputPass = document.getElementById('admin-pass').value;
@@ -395,17 +369,16 @@
             loginBtn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Verifica in corso...</span>';
             errorLabel.classList.add('hidden');
 
-            // Verifica robusta sul caricamento della CDN MD5
             if (typeof md5 === 'undefined') {
-                console.error("Libreria blueimp-md5 non caricata dal browser.");
-                errorLabel.innerText = "Errore di sicurezza: libreria crittografica non disponibile localmente.";
+                console.error("Errore: Libreria blueimp-md5 non disponibile.");
+                errorLabel.innerText = "Errore di sicurezza: libreria di crittografia non disponibile.";
                 errorLabel.classList.remove('hidden');
                 loginBtn.innerHTML = '<span>Entra nel Gestionale</span>';
                 return;
             }
 
             try {
-                if (!supabaseClient) throw new Error("Client Supabase non connesso.");
+                if (!supabaseClient) throw new Error("Connessione Supabase assente.");
 
                 const hashedInput = md5(inputPass);
                 const { data, error } = await supabaseClient
@@ -420,7 +393,7 @@
 
                 unlockDashboard();
             } catch (err) {
-                console.error("Errore durante la transazione di Login:", err);
+                console.error("Errore durante il Login:", err);
                 errorLabel.innerText = "Password non valida o database offline.";
                 errorLabel.classList.remove('hidden');
                 loginBtn.innerHTML = '<span>Entra nel Gestionale</span>';
@@ -438,7 +411,7 @@
                 document.getElementById('dashboard').classList.remove('hidden');
             }, 300);
             
-            fetchMenu();
+            loadMetadataAndMenu();
         }
 
         function logout() {
@@ -456,12 +429,80 @@
             switchTab('gestione');
         }
 
+        function showToast(message, isSuccess = true) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.className = "fixed bottom-6 right-6 z-50 bg-stone-900 text-stone-100 px-6 py-4 rounded-xl shadow-2xl border border-stone-800 flex items-center gap-3 transform translate-y-0 opacity-100 transition-all duration-300";
+            setTimeout(() => {
+                toast.className = "fixed bottom-6 right-6 z-50 bg-stone-900 text-stone-100 px-6 py-4 rounded-xl shadow-2xl border border-stone-800 flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none";
+            }, 3000);
+        }
+
+        // Recupero iniziale di categorie, allergeni e prodotti (Flusso relazionale)
+        async function loadMetadataAndMenu() {
+            if (!supabaseClient) return;
+            try {
+                const [catRes, allRes] = await Promise.all([
+                    supabaseClient.from('categories').select('*').order('sort_order', { ascending: true }),
+                    supabaseClient.from('allergens').select('*').order('name', { ascending: true })
+                ]);
+
+                if (!catRes.error) {
+                    categoriesList = catRes.data || [];
+                    populateCategoryDropdown();
+                }
+                if (!allRes.error) {
+                    allergensList = allRes.data || [];
+                    populateAllergensGrid();
+                }
+
+                await fetchMenu();
+            } catch (e) {
+                console.error("Errore nel caricamento dei metadati relazionali:", e);
+            }
+        }
+
+        function populateCategoryDropdown() {
+            const select = document.getElementById('prod-category');
+            select.innerHTML = '';
+            categoriesList.forEach(cat => {
+                select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+            });
+        }
+
+        function populateAllergensGrid() {
+            const grid = document.getElementById('allergens-grid');
+            grid.innerHTML = '';
+            allergensList.forEach(allergen => {
+                grid.innerHTML += `
+                    <label class="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-dark-800 rounded transition-colors text-xs">
+                        <input type="checkbox" name="allergens" value="${allergen.id}" class="w-4 h-4 accent-gold-500 rounded-sm">
+                        <span>${allergen.name}</span>
+                    </label>
+                `;
+            });
+        }
+
         async function fetchMenu() {
             if (!supabaseClient) return;
             try {
-                const { data, error } = await supabaseClient.from('menu').select('*').order('category', { ascending: true });
+                const { data, error } = await supabaseClient.from('products').select(`
+                    *,
+                    product_allergens (
+                        allergen_id,
+                        allergens (id, name)
+                    )
+                `).order('sort_order', { ascending: true });
+
                 if (!error && data) {
-                    menuItems = data;
+                    menuItems = data.map(item => {
+                        const matchedCat = categoriesList.find(c => c.id === item.category_id);
+                        return {
+                            ...item,
+                            category: matchedCat ? matchedCat.name : 'Altro',
+                            allergens: item.product_allergens ? item.product_allergens.map(pa => pa.allergen_id) : []
+                        };
+                    });
                 } else {
                     menuItems = [];
                 }
@@ -480,7 +521,7 @@
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
             if (items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-stone-500 font-serif italic tracking-widest text-xs">Nessun piatto trovato nel database.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-stone-500 font-serif italic tracking-widest text-xs">Nessun piatto trovato nel database.</td></tr>`;
                 return;
             }
             items.forEach(item => {
@@ -492,12 +533,6 @@
                         ${item.description ? `<div class="text-xs text-stone-500 max-w-xs truncate mt-1 font-sans font-light">${item.description}</div>` : ''}
                     </td>
                     <td class="p-4"><span class="bg-stone-850 text-stone-300 text-[10px] font-semibold px-2.5 py-1 rounded-md uppercase tracking-wider font-sans">${item.category}</span></td>
-                    <td class="p-4 text-center">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase ${item.available ? 'bg-gold-500/10 text-gold-400 border border-gold-500/10' : 'bg-stone-850 text-stone-500'}">
-                            <span class="h-1.5 w-1.5 rounded-full ${item.available ? 'bg-gold-500' : 'bg-stone-500'}"></span>
-                            ${item.available ? 'Visibile' : 'Nascosto'}
-                        </span>
-                    </td>
                     <td class="p-4 font-bold text-gold-500 font-serif text-base">${item.price.toFixed(2)} €</td>
                     <td class="p-4 text-right space-x-3 whitespace-nowrap">
                         <button onclick="editProduct(${item.id})" class="text-gold-500 hover:text-gold-400 font-bold text-[10px] uppercase tracking-widest cursor-pointer transition-colors min-h-[44px] min-w-[44px]">Modifica</button>
@@ -514,48 +549,98 @@
             renderTable(filtered);
         }
 
+        // Salvataggio relazionale dei prodotti e della tabella ponte degli allergeni
         async function saveProduct(e) {
             e.preventDefault();
             if (!supabaseClient) return;
 
             const id = document.getElementById('prod-id').value;
+            const categoryId = parseInt(document.getElementById('prod-category').value);
+            const name = document.getElementById('prod-name').value.trim();
+            const price = parseFloat(document.getElementById('prod-price').value);
+            const description = document.getElementById('prod-description').value.trim();
+            const minPersonsVal = document.getElementById('prod-min-persons').value;
+            const min_persons = minPersonsVal ? parseInt(minPersonsVal) : null;
+            const price_per_person = document.getElementById('prod-per-person').checked;
+
+            // Raccogli gli allergeni selezionati
+            const selectedAllergenCheckboxes = document.querySelectorAll('input[name="allergens"]:checked');
+            const selectedAllergenIds = Array.from(selectedAllergenCheckboxes).map(cb => parseInt(cb.value));
+
             const payload = {
-                name: document.getElementById('prod-name').value,
-                category: document.getElementById('prod-category').value,
-                price: parseFloat(document.getElementById('prod-price').value),
-                description: document.getElementById('prod-description').value,
-                available: document.getElementById('prod-available').checked
+                category_id: categoryId,
+                name: name,
+                price: price,
+                description: description || null,
+                min_persons: min_persons,
+                price_per_person: price_per_person
             };
 
-            let error;
-            if (id) { 
-                ({ error } = await supabaseClient.from('menu').update(payload).eq('id', id)); 
-            } else { 
-                // All'inserimento di un nuovo prodotto, calcola la posizione in fondo alla categoria
-                const countInCategory = menuItems.filter(i => i.category === payload.category).length;
-                payload.position = countInCategory;
-                ({ error } = await supabaseClient.from('menu').insert([payload])); 
-            }
+            try {
+                let productId = id;
+                let saveError;
 
-            if (error) { 
-                showToast("Errore durante il salvataggio", false); 
-            } else { 
-                showToast("Piatto salvato con successo!"); 
-                resetForm(); 
-                fetchMenu(); 
+                if (id) {
+                    // Update del prodotto
+                    const { error } = await supabaseClient.from('products').update(payload).eq('id', id);
+                    saveError = error;
+                } else {
+                    // Inserimento con calcolo del sort_order di coda
+                    const countInCategory = menuItems.filter(i => i.category_id === categoryId).length;
+                    payload.sort_order = countInCategory + 1;
+                    
+                    const { data, error } = await supabaseClient.from('products').insert([payload]).select('id').single();
+                    saveError = error;
+                    if (data) productId = data.id;
+                }
+
+                if (saveError) throw saveError;
+
+                // Aggiornamento relazionale della tabella ponte product_allergens
+                if (productId) {
+                    // 1. Rimuove le vecchie relazioni per questo prodotto
+                    await supabaseClient.from('product_allergens').delete().eq('product_id', productId);
+
+                    // 2. Inserisce le nuove se presenti
+                    if (selectedAllergenIds.length > 0) {
+                        const inserts = selectedAllergenIds.map(aid => ({
+                            product_id: productId,
+                            allergen_id: aid
+                        }));
+                        const { error: relError } = await supabaseClient.from('product_allergens').insert(inserts);
+                        if (relError) throw relError;
+                    }
+                }
+
+                showToast("Salvataggio completato con successo!");
+                resetForm();
+                await fetchMenu();
+
+            } catch (err) {
+                console.error("Errore durante il salvataggio relazionale:", err);
+                showToast("Errore durante il salvataggio del piatto: " + err.message, false);
             }
         }
 
         function editProduct(id) {
             const item = menuItems.find(i => i.id == id);
             if (!item) return;
+            
             document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-gold-500"></i> Modifica Piatto`;
             document.getElementById('prod-id').value = item.id;
             document.getElementById('prod-name').value = item.name;
-            document.getElementById('prod-category').value = item.category;
+            document.getElementById('prod-category').value = item.category_id;
             document.getElementById('prod-price').value = item.price;
+            document.getElementById('prod-min-persons').value = item.min_persons || '';
+            document.getElementById('prod-per-person').checked = item.price_per_person || false;
             document.getElementById('prod-description').value = item.description || '';
-            document.getElementById('prod-available').checked = item.available;
+            
+            // Ripristina gli allergeni selezionati nel form
+            const checkboxes = document.querySelectorAll('input[name="allergens"]');
+            checkboxes.forEach(cb => {
+                cb.checked = item.allergens ? item.allergens.includes(parseInt(cb.value)) : false;
+            });
+
             document.getElementById('cancel-btn').classList.remove('hidden');
         }
 
@@ -576,7 +661,8 @@
 
         async function confirmDelete() {
             if (idToDelete === null || !supabaseClient) return;
-            const { error } = await supabaseClient.from('menu').delete().eq('id', idToDelete);
+            // Rimuove a cascata (la foreign key on delete cascade gestisce product_allergens in automatico)
+            const { error } = await supabaseClient.from('products').delete().eq('id', idToDelete);
             if (error) { 
                 showToast("Impossibile eliminare", false); 
             } else { 
@@ -585,14 +671,16 @@
             }
             closeDeleteModal();
         }
-        
-        document.getElementById('confirm-delete-btn').onclick = confirmDelete;
 
         function resetForm() {
             document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-plus-circle text-gold-500"></i> Aggiungi Prodotto`;
             document.getElementById('product-form').reset();
             document.getElementById('prod-id').value = '';
-            document.getElementById('prod-available').checked = true;
+            document.getElementById('prod-per-person').checked = false;
+            
+            const checkboxes = document.querySelectorAll('input[name="allergens"]');
+            checkboxes.forEach(cb => cb.checked = false);
+
             document.getElementById('cancel-btn').classList.add('hidden');
         }
     </script>
