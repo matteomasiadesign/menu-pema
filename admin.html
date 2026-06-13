@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PEMA - Gestione Menu</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase SDK e MD5 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
     
@@ -17,29 +19,10 @@
             theme: {
                 extend: {
                     colors: {
-                        gold: {
-                            50: '#FAF6E8',
-                            100: '#F4EBD1',
-                            200: '#E9D7A3',
-                            300: '#DEC375',
-                            400: '#D3AF47',
-                            500: '#C59B27',
-                            600: '#9E7C1F',
-                            700: '#765D17'
-                        },
-                        dark: {
-                            950: '#050505',
-                            900: '#0A0A0A',
-                            850: '#111111',
-                            800: '#181818',
-                            750: '#222222',
-                            700: '#2D2D2D'
-                        }
+                        gold: { 50: '#FAF6E8', 100: '#F4EBD1', 200: '#E9D7A3', 300: '#DEC375', 400: '#D3AF47', 500: '#C59B27', 600: '#9E7C1F', 700: '#765D17' },
+                        dark: { 950: '#050505', 900: '#0A0A0A', 850: '#111111', 800: '#181818', 750: '#222222', 700: '#2D2D2D' }
                     },
-                    fontFamily: {
-                        serif: ['Cormorant Garamond', 'serif'],
-                        sans: ['Inter', 'sans-serif']
-                    }
+                    fontFamily: { serif: ['Cormorant Garamond', 'serif'], sans: ['Inter', 'sans-serif'] }
                 }
             }
         }
@@ -47,31 +30,41 @@
 </head>
 <body class="bg-dark-950 text-stone-200 font-sans min-h-screen flex flex-col selection:bg-gold-500 selection:text-dark-950">
 
+    <!-- SCHERMATA LOGIN CON FUNZIONE OCCHIO ATTIVA -->
     <div id="login-container" class="fixed inset-0 bg-dark-950 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
         <div class="bg-dark-900 rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-stone-900 text-center">
             <h1 class="font-serif text-3xl tracking-[0.2em] text-gold-500 font-light uppercase mb-1">P E M A</h1>
             <p class="font-serif text-[9px] tracking-[0.35em] text-stone-500 uppercase mb-8 italic">Pannello Amministrativo</p>
             
-            <div class="space-y-5 text-left">
+            <form onsubmit="login(event)" class="space-y-5 text-left">
                 <div>
                     <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2.5">Password di Accesso</label>
-                    <input type="password" id="admin-pass" placeholder="Password" class="w-full p-4 bg-dark-850 border border-stone-800 rounded-xl outline-none text-stone-100 text-sm focus:border-gold-500 transition-colors">
+                    <div class="relative">
+                        <!-- Sfondo celeste per rispettare fedelmente il design dello screenshot -->
+                        <input type="password" id="admin-pass" placeholder="Password" class="w-full bg-[#eff4ff] border border-blue-100 p-4 pr-12 rounded-xl outline-none text-black text-sm focus:ring-2 focus:ring-black transition-colors">
+                        <!-- Pulsante dell'occhio interattivo -->
+                        <button type="button" onclick="togglePassword()" class="absolute right-0 top-0 h-full px-4 text-stone-400 hover:text-black transition-colors flex items-center justify-center">
+                            <i id="eye-icon" class="fa-solid fa-eye text-lg"></i>
+                        </button>
+                    </div>
                 </div>
                 <div id="login-error" class="hidden text-xs text-rose-400 font-medium bg-rose-950/20 p-3.5 rounded-xl border border-rose-900/30 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-exclamation"></i> Password non valida. Accesso negato.
+                    <i class="fa-solid fa-circle-exclamation"></i> Password non valida o database offline.
                 </div>
-                <button onclick="login()" id="login-btn" class="w-full bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-all cursor-pointer text-xs tracking-widest uppercase flex items-center justify-center gap-2 min-h-[48px]">
+                <button type="submit" id="login-btn" class="w-full bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-all cursor-pointer text-xs tracking-widest uppercase flex items-center justify-center gap-2 min-h-[48px]">
                     <span>Entra nel Gestionale</span>
                 </button>
-            </div>
+            </form>
         </div>
     </div>
 
+    <!-- Feedback Notifiche Toast -->
     <div id="toast" class="fixed bottom-6 right-6 z-50 bg-stone-900 text-stone-100 px-6 py-4 rounded-xl shadow-2xl border border-stone-800 flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
         <span id="toast-icon" class="text-gold-500"><i class="fa-solid fa-circle-check"></i></span>
         <span id="toast-message" class="text-xs font-semibold uppercase tracking-widest"></span>
     </div>
 
+    <!-- Modale di Conferma Eliminazione -->
     <div id="confirm-delete-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-dark-900 rounded-2xl max-w-sm w-full p-8 border border-stone-900 transform scale-95 opacity-0 transition-all duration-300" id="delete-modal-content">
             <h3 class="font-serif text-xl font-bold text-stone-100 uppercase tracking-widest">Eliminare questo piatto?</h3>
@@ -83,6 +76,7 @@
         </div>
     </div>
 
+    <!-- Pannello Dashboard Principale -->
     <div id="dashboard" class="hidden flex-1 flex flex-col">
         <header class="bg-dark-900 border-b border-stone-900 py-6 px-4 sticky top-0 z-40">
             <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -100,6 +94,7 @@
         </header>
 
         <main class="max-w-6xl mx-auto px-4 py-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
+            <!-- Colonna Sinistra: Form Inserimento/Modifica -->
             <div class="lg:col-span-4">
                 <div class="bg-dark-900 p-6 rounded-2xl border border-stone-900 sticky top-24">
                     <h2 id="form-title" class="font-serif text-lg font-bold text-gold-500 mb-6 uppercase tracking-widest flex items-center gap-2">
@@ -137,6 +132,7 @@
                 </div>
             </div>
 
+            <!-- Colonna Destra: Elenco e Tabella Gestionale -->
             <div class="lg:col-span-8 space-y-4">
                 <div class="flex bg-dark-900 px-5 py-4 border border-stone-900 rounded-2xl items-center gap-3.5 shadow-lg">
                     <i class="fa-solid fa-magnifying-glass text-stone-500"></i>
@@ -154,8 +150,7 @@
                                     <th class="p-4 text-right">Azioni</th>
                                 </tr>
                             </thead>
-                            <tbody id="table-body" class="divide-y divide-stone-900/60 text-sm">
-                            </tbody>
+                            <tbody id="table-body" class="divide-y divide-stone-900/60 text-sm"></tbody>
                         </table>
                     </div>
                 </div>
@@ -174,64 +169,75 @@
         try {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         } catch (e) {
-            console.error("Inizializzazione offline di Supabase per l'Admin.");
+            console.error("Errore di inizializzazione della libreria Supabase.");
         }
 
-        async function login() {
+        // Funzione per commutare la visibilità della Password (Occhio)
+        function togglePassword() {
+            const passInput = document.getElementById('admin-pass');
+            const eyeIcon = document.getElementById('eye-icon');
+            
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Funzione Login Reale con hashing MD5
+        async function login(e) {
+            e.preventDefault(); 
             const inputPass = document.getElementById('admin-pass').value;
             const errorLabel = document.getElementById('login-error');
             const loginBtn = document.getElementById('login-btn');
 
-            loginBtn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Verifica in corso...</span>';
-            const hashedInput = md5(inputPass);
+            if (!inputPass) return;
 
-            if (!supabase) {
-                if (inputPass === "P3m@2026!") {
-                    unlockDashboard();
-                } else {
-                    errorLabel.classList.remove('hidden');
-                    loginBtn.innerHTML = '<span>Entra nel Gestionale</span>';
-                }
+            loginBtn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Verifica in corso...</span>';
+            errorLabel.classList.add('hidden');
+
+            // Verifica robusta sul caricamento della CDN MD5
+            if (typeof md5 === 'undefined') {
+                console.error("Libreria blueimp-md5 non caricata dal browser.");
+                errorLabel.innerText = "Errore di sicurezza: libreria crittografica non disponibile localmente.";
+                errorLabel.classList.remove('hidden');
+                loginBtn.innerHTML = '<span>Entra nel Gestionale</span>';
                 return;
             }
 
             try {
+                if (!supabase) throw new Error("Client Supabase non connesso.");
+
+                const hashedInput = md5(inputPass);
                 const { data, error } = await supabase
                     .from('gestione_accessi')
                     .select('password_hash')
                     .eq('id', 1)
                     .single();
 
-                if (error) {
-                    if (inputPass === "P3m@2026!") {
-                        unlockDashboard();
-                        return;
-                    }
-                    throw error;
-                }
-
-                if (!data || data.password_hash !== hashedInput) {
-                    errorLabel.classList.remove('hidden');
-                    loginBtn.innerHTML = '<span>Entra nel Gestionale</span>';
-                    document.getElementById('admin-pass').value = '';
-                    return;
+                if (error || !data || data.password_hash !== hashedInput) {
+                    throw new Error("Credenziali errate.");
                 }
 
                 unlockDashboard();
             } catch (err) {
-                console.error("Errore di connessione a Supabase durante il login:", err);
-                if (inputPass === "P3m@2026!") {
-                    unlockDashboard();
-                } else {
-                    errorLabel.classList.remove('hidden');
-                    loginBtn.innerHTML = '<span>Entra nel Gestionale</span>';
-                }
+                console.error("Errore durante la transazione di Login:", err);
+                errorLabel.innerText = "Password non valida o database offline.";
+                errorLabel.classList.remove('hidden');
+                loginBtn.innerHTML = '<span>Entra nel Gestionale</span>';
+                document.getElementById('admin-pass').value = '';
             }
         }
 
         function unlockDashboard() {
             document.getElementById('login-error').classList.add('hidden');
             document.getElementById('login-container').classList.add('opacity-0');
+            document.getElementById('login-container').classList.add('pointer-events-none');
+            
             setTimeout(() => {
                 document.getElementById('login-container').classList.add('hidden');
                 document.getElementById('dashboard').classList.remove('hidden');
@@ -241,7 +247,14 @@
         }
 
         function logout() {
-            document.getElementById('admin-pass').value = '';
+            const passInput = document.getElementById('admin-pass');
+            const eyeIcon = document.getElementById('eye-icon');
+            
+            passInput.value = '';
+            passInput.type = 'password';
+            eyeIcon.className = 'fa-solid fa-eye text-lg';
+            
+            document.getElementById('login-container').classList.remove('pointer-events-none');
             document.getElementById('login-container').classList.remove('hidden');
             setTimeout(() => { document.getElementById('login-container').classList.remove('opacity-0'); }, 50);
             document.getElementById('dashboard').classList.add('hidden');
@@ -257,36 +270,27 @@
         }
 
         async function fetchMenu() {
-            if (!supabase) {
-                loadDemoFallbackData();
-                renderTable(menuItems);
-                return;
-            }
+            if (!supabase) return;
             try {
                 const { data, error } = await supabase.from('menu').select('*').order('category', { ascending: true });
-                if (!error && data && data.length > 0) { 
-                    menuItems = data; 
+                if (!error && data) {
+                    menuItems = data;
                 } else {
-                    loadDemoFallbackData();
+                    menuItems = [];
                 }
+                renderTable(menuItems);
             } catch (e) {
-                loadDemoFallbackData();
+                console.error(e);
+                menuItems = [];
+                renderTable(menuItems);
             }
-            renderTable(menuItems);
-        }
-
-        function loadDemoFallbackData() {
-            menuItems = [
-                { id: 1, name: 'Diaframma di Manzo, Topinambur e Tartufo', description: 'Diaframma piemontese scottato alla brace, purè di topinambur affumicato, tartufo nero estivo.', price: 24.00, category: 'Secondi', available: true },
-                { id: 2, name: 'Gnocco di Patata Viola e Granciporri', description: 'Gnocchi di patata viola fatti in casa, polpa di granciporro atlantico, emulsione al burro nocciola.', price: 19.50, category: 'Primi', available: true }
-            ];
         }
 
         function renderTable(items) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
             if (items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-stone-500 font-serif italic tracking-widest">Nessun piatto trovato.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-stone-500 font-serif italic tracking-widest text-xs">Nessun piatto trovato nel database.</td></tr>`;
                 return;
             }
             items.forEach(item => {
@@ -322,6 +326,8 @@
 
         async function saveProduct(e) {
             e.preventDefault();
+            if (!supabase) return;
+
             const id = document.getElementById('prod-id').value;
             const payload = {
                 name: document.getElementById('prod-name').value,
@@ -330,12 +336,6 @@
                 description: document.getElementById('prod-description').value,
                 available: document.getElementById('prod-available').checked
             };
-
-            if (!supabase) {
-                showToast("Sandbox locale: Prodotto salvato in simulazione!");
-                resetForm();
-                return;
-            }
 
             let error;
             if (id) { 
@@ -382,21 +382,17 @@
         }
 
         async function confirmDelete() {
-            if (idToDelete === null) return;
-            if (!supabase) {
-                showToast("Sandbox: Piatto eliminato in simulazione!");
-                closeDeleteModal();
-                return;
-            }
+            if (idToDelete === null || !supabase) return;
             const { error } = await supabase.from('menu').delete().eq('id', idToDelete);
             if (error) { 
                 showToast("Impossibile eliminare", false); 
             } else { 
-                showToast("Piatto rimosso con successo", false); 
+                showToast("Piatto rimosso con successo", true); 
                 fetchMenu(); 
             }
             closeDeleteModal();
         }
+        
         document.getElementById('confirm-delete-btn').onclick = confirmDelete;
 
         function resetForm() {
