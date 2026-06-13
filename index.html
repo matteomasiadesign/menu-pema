@@ -5,41 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PEMA - Menu Digitale</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Inter:wght@200;300;400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { background-color: #050505; color: #d6d3d1; font-family: 'Inter', sans-serif; }
         h1, h2, summary { font-family: 'Cormorant Garamond', serif; color: #d4af37; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="min-h-screen">
-    <header class="py-16 text-center border-b border-stone-900">
-        <h1 class="text-6xl tracking-[0.2em] uppercase notranslate">P E M A</h1>
-        <p class="text-[10px] tracking-[0.3em] uppercase text-stone-500 mt-2 italic">Not exactly a neighborhood kitchen</p>
+<body class="min-h-screen flex flex-col">
+    <header class="py-12 text-center border-b border-stone-800">
+        <h1 class="text-5xl tracking-[0.2em] uppercase notranslate">P E M A</h1>
     </header>
 
-    <main class="max-w-3xl mx-auto p-6 w-full" id="menu-container">
-        <div id="loader" class="text-center py-20 italic text-stone-500">Caricamento menù in corso...</div>
+    <main class="flex-1 max-w-3xl mx-auto p-4 w-full" id="menu-container">
+        <div id="loader" class="text-center py-20 text-stone-500">Caricamento menu...</div>
     </main>
 
     <script>
         const supabase = window.supabase.createClient("https://cpmianmjcxhputneygsw.supabase.co", "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm");
         
         async function loadMenu() {
-            // Ordinamento sicuro per categoria
-            const { data, error } = await supabase.from('menu').select('*').eq('available', true).order('category');
-            if (error) { document.getElementById('loader').innerText = "Errore connessione."; return; }
-            
-            document.getElementById('loader').style.display = 'none';
+            const { data } = await supabase.from('menu').select('*').eq('available', true).order('category');
             const container = document.getElementById('menu-container');
-            const grouped = data.reduce((acc, i) => { (acc[i.category] = acc[i.category] || []).push(i); return acc; }, {});
+            document.getElementById('loader').style.display = 'none';
+            
+            if (!data) return;
+
+            const grouped = {};
+            data.forEach(i => {
+                if (!grouped[i.category]) grouped[i.category] = [];
+                grouped[i.category].push(i);
+            });
 
             for (const cat in grouped) {
-                if (cat.includes('Vini')) {
+                if (cat.startsWith('Vini')) {
                     container.innerHTML += `
-                        <details class="my-8 border-b border-stone-900 pb-4 group">
-                            <summary class="text-3xl uppercase tracking-widest cursor-pointer text-gold-500 hover:text-white transition-colors">${cat}</summary>
-                            <div class="mt-6 space-y-4">
+                        <details class="my-6 border-b border-stone-800 pb-4">
+                            <summary class="text-2xl uppercase tracking-widest cursor-pointer">${cat}</summary>
+                            <div class="mt-4 space-y-4">
                                 ${grouped[cat].map(item => `
                                     <div class="flex justify-between items-baseline">
                                         <h3 class="text-lg text-stone-200 notranslate">${item.name}</h3>
@@ -49,15 +53,15 @@
                             </div>
                         </details>`;
                 } else {
-                    container.innerHTML += `<h2 class="text-3xl tracking-widest uppercase text-center my-12 text-[#d4af37] border-b border-stone-900 pb-4">${cat}</h2>`;
+                    container.innerHTML += `<h2 class="text-2xl tracking-widest uppercase text-center my-8">${cat}</h2>`;
                     grouped[cat].forEach(item => {
                         container.innerHTML += `
-                            <div class="mb-8">
+                            <div class="mb-6">
                                 <div class="flex justify-between items-baseline">
-                                    <h3 class="text-xl text-stone-200 notranslate">${item.name}</h3>
+                                    <h3 class="text-lg text-stone-200 notranslate">${item.name}</h3>
                                     <span class="font-semibold text-[#d4af37]">${item.price.toFixed(2)} €</span>
                                 </div>
-                                <p class="text-sm text-stone-500 mt-1">${item.description || ''}</p>
+                                <p class="text-xs text-stone-500 mt-1">${item.description || ''}</p>
                             </div>`;
                     });
                 }
