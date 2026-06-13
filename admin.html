@@ -30,7 +30,7 @@
 </head>
 <body class="bg-dark-950 text-stone-200 font-sans min-h-screen flex flex-col selection:bg-gold-500 selection:text-dark-950">
 
-    <!-- SCHERMATA LOGIN CON FUNZIONE OCCHIO ATTIVA -->
+    <!-- SCHERMATA LOGIN CON OCCHIO PASSWORD REALE E FUNZIONANTE -->
     <div id="login-container" class="fixed inset-0 bg-dark-950 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
         <div class="bg-dark-900 rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-stone-900 text-center">
             <h1 class="font-serif text-3xl tracking-[0.2em] text-gold-500 font-light uppercase mb-1">P E M A</h1>
@@ -40,9 +40,9 @@
                 <div>
                     <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2.5">Password di Accesso</label>
                     <div class="relative">
-                        <!-- Sfondo celeste per rispettare fedelmente il design dello screenshot -->
+                        <!-- Sfondo celeste per simulare perfettamente il mockup -->
                         <input type="password" id="admin-pass" placeholder="Password" class="w-full bg-[#eff4ff] border border-blue-100 p-4 pr-12 rounded-xl outline-none text-black text-sm focus:ring-2 focus:ring-black transition-colors">
-                        <!-- Pulsante dell'occhio interattivo -->
+                        <!-- Pulsante dell'occhio funzionante ed elegante -->
                         <button type="button" onclick="togglePassword()" class="absolute right-0 top-0 h-full px-4 text-stone-400 hover:text-black transition-colors flex items-center justify-center">
                             <i id="eye-icon" class="fa-solid fa-eye text-lg"></i>
                         </button>
@@ -58,7 +58,7 @@
         </div>
     </div>
 
-    <!-- Feedback Notifiche Toast -->
+    <!-- Feedback Toast -->
     <div id="toast" class="fixed bottom-6 right-6 z-50 bg-stone-900 text-stone-100 px-6 py-4 rounded-xl shadow-2xl border border-stone-800 flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
         <span id="toast-icon" class="text-gold-500"><i class="fa-solid fa-circle-check"></i></span>
         <span id="toast-message" class="text-xs font-semibold uppercase tracking-widest"></span>
@@ -71,12 +71,12 @@
             <p class="text-stone-400 text-xs mt-3 leading-relaxed font-light">L'azione rimuoverà permanentemente il piatto selezionato dal menu digitale di PEMA.</p>
             <div class="flex gap-4 mt-8">
                 <button onclick="closeDeleteModal()" class="flex-1 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-3.5 rounded-xl transition-all text-xs tracking-wider uppercase cursor-pointer min-h-[44px]">Annulla</button>
-                <button id="confirm-delete-btn" class="flex-1 bg-rose-700 hover:bg-rose-800 text-white font-bold py-3.5 rounded-xl transition-all text-xs tracking-wider uppercase cursor-pointer min-h-[44px]">Elimina</button>
+                <button id="confirm-delete-btn" onclick="confirmDelete()" class="flex-1 bg-rose-700 hover:bg-rose-800 text-white font-bold py-3.5 rounded-xl transition-all text-xs tracking-wider uppercase cursor-pointer min-h-[44px]">Elimina</button>
             </div>
         </div>
     </div>
 
-    <!-- Pannello Dashboard Principale -->
+    <!-- Dashboard Principale -->
     <div id="dashboard" class="hidden flex-1 flex flex-col">
         <header class="bg-dark-900 border-b border-stone-900 py-6 px-4 sticky top-0 z-40">
             <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -94,7 +94,7 @@
         </header>
 
         <main class="max-w-6xl mx-auto px-4 py-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
-            <!-- Colonna Sinistra: Form Inserimento/Modifica -->
+            <!-- Colonna Form (Aggiungi/Modifica) -->
             <div class="lg:col-span-4">
                 <div class="bg-dark-900 p-6 rounded-2xl border border-stone-900 sticky top-24">
                     <h2 id="form-title" class="font-serif text-lg font-bold text-gold-500 mb-6 uppercase tracking-widest flex items-center gap-2">
@@ -121,7 +121,7 @@
                             <textarea id="prod-description" rows="4" placeholder="Composizione del piatto..." class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all resize-none font-sans"></textarea>
                         </div>
                         <div class="flex items-center gap-2.5 pt-2">
-                            <input type="checkbox" id="prod-available" checked class="w-5 h-5 accent-gold-500 bg-dark-850 border-stone-850 rounded-sm">
+                            <input type="checkbox" id="prod-available" checked class="w-5 h-5 accent-gold-500 bg-dark-850 border-stone-850 rounded-sm animate-fade-in">
                             <label for="prod-available" class="text-xs font-bold text-stone-400 uppercase tracking-widest">Disponibile nel menu</label>
                         </div>
                         <div class="flex gap-2 pt-4 border-t border-stone-900">
@@ -132,7 +132,7 @@
                 </div>
             </div>
 
-            <!-- Colonna Destra: Elenco e Tabella Gestionale -->
+            <!-- Colonna Tabella dei Piatti -->
             <div class="lg:col-span-8 space-y-4">
                 <div class="flex bg-dark-900 px-5 py-4 border border-stone-900 rounded-2xl items-center gap-3.5 shadow-lg">
                     <i class="fa-solid fa-magnifying-glass text-stone-500"></i>
@@ -169,10 +169,10 @@
         try {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         } catch (e) {
-            console.error("Errore di inizializzazione della libreria Supabase.");
+            console.error("Errore inizializzazione client Supabase.");
         }
 
-        // Funzione per commutare la visibilità della Password (Occhio)
+        // 1. Funzione Reale Mostra/Nascondi Password
         function togglePassword() {
             const passInput = document.getElementById('admin-pass');
             const eyeIcon = document.getElementById('eye-icon');
@@ -188,9 +188,9 @@
             }
         }
 
-        // Funzione Login Reale con hashing MD5
+        // 2. Login con verifica di sicurezza crittografata MD5
         async function login(e) {
-            e.preventDefault(); 
+            if (e && e.preventDefault) e.preventDefault(); 
             const inputPass = document.getElementById('admin-pass').value;
             const errorLabel = document.getElementById('login-error');
             const loginBtn = document.getElementById('login-btn');
@@ -200,17 +200,16 @@
             loginBtn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Verifica in corso...</span>';
             errorLabel.classList.add('hidden');
 
-            // Verifica robusta sul caricamento della CDN MD5
             if (typeof md5 === 'undefined') {
-                console.error("Libreria blueimp-md5 non caricata dal browser.");
-                errorLabel.innerText = "Errore di sicurezza: libreria crittografica non disponibile localmente.";
+                console.error("Errore: Libreria blueimp-md5 non disponibile.");
+                errorLabel.innerText = "Errore di sicurezza: libreria di crittografia non disponibile.";
                 errorLabel.classList.remove('hidden');
                 loginBtn.innerHTML = '<span>Entra nel Gestionale</span>';
                 return;
             }
 
             try {
-                if (!supabase) throw new Error("Client Supabase non connesso.");
+                if (!supabase) throw new Error("Connessione Supabase assente.");
 
                 const hashedInput = md5(inputPass);
                 const { data, error } = await supabase
@@ -220,12 +219,12 @@
                     .single();
 
                 if (error || !data || data.password_hash !== hashedInput) {
-                    throw new Error("Credenziali errate.");
+                    throw new Error("Password Errata");
                 }
 
                 unlockDashboard();
             } catch (err) {
-                console.error("Errore durante la transazione di Login:", err);
+                console.error("Errore durante il Login:", err);
                 errorLabel.innerText = "Password non valida o database offline.";
                 errorLabel.classList.remove('hidden');
                 loginBtn.innerHTML = '<span>Entra nel Gestionale</span>';
@@ -392,8 +391,6 @@
             }
             closeDeleteModal();
         }
-        
-        document.getElementById('confirm-delete-btn').onclick = confirmDelete;
 
         function resetForm() {
             document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-plus-circle text-gold-500"></i> Aggiungi Prodotto`;
