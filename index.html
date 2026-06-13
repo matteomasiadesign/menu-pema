@@ -240,8 +240,10 @@
             try {
                 const googleSelect = document.querySelector('.goog-te-combo');
                 if (googleSelect) {
-                    googleSelect.value = langCode;
-                    googleSelect.dispatchEvent(new Event('change'));
+                    // Google usa il valore vuoto per ripristinare la lingua originale (Italiano)
+                    googleSelect.value = langCode === 'it' ? '' : langCode;
+                    // CRITICO: { bubbles: true } fa rimbalzare l'evento fino al motore di Google
+                    googleSelect.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             } catch (err) {}
         }
