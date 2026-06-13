@@ -3,48 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PEMA - Menu Digitale</title>
+    <title>PEMA - Menu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { background-color: #050505; color: #d6d3d1; font-family: 'Inter', sans-serif; }
-        h1, h2, summary { font-family: 'Cormorant Garamond', serif; color: #d4af37; }
-    </style>
 </head>
-<body class="min-h-screen">
-    <header class="py-12 text-center border-b border-stone-800">
-        <h1 class="text-5xl tracking-[0.2em] uppercase notranslate">P E M A</h1>
+<body class="bg-black text-stone-300 font-sans">
+    <header class="py-12 text-center border-b border-stone-900">
+        <h1 class="text-4xl tracking-[0.2em] uppercase text-gold-500">P E M A</h1>
     </header>
-    <main class="max-w-3xl mx-auto p-4 w-full" id="menu-container">
-        <div id="loader" class="text-center py-20 text-stone-500 italic">Caricamento in corso...</div>
+    <main class="max-w-2xl mx-auto p-6" id="app">
+        <div id="loader" class="text-center py-10">Caricamento...</div>
+        <div id="content"></div>
     </main>
 
     <script>
         const supabase = window.supabase.createClient("https://cpmianmjcxhputneygsw.supabase.co", "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm");
         
-        async function loadMenu() {
-            try {
-                // Abbiamo rimosso 'position' dalla query per sicurezza finché non sei sicuro sia su Supabase
-                const { data, error } = await supabase.from('menu').select('*').eq('available', true).order('category');
-                if (error) throw error;
-                
-                const container = document.getElementById('menu-container');
-                document.getElementById('loader').style.display = 'none';
-                
-                const grouped = data.reduce((acc, i) => { (acc[i.category] = acc[i.category] || []).push(i); return acc; }, {});
-
-                for (const cat in grouped) {
-                    if (cat.startsWith('Vini')) {
-                        container.innerHTML += `<details class="my-6 border-b border-stone-800 pb-4"><summary class="text-2xl uppercase tracking-widest cursor-pointer">${cat}</summary><div class="mt-4 space-y-4">${grouped[cat].map(item => `<div class="flex justify-between items-baseline"><h3 class="text-lg text-stone-200 notranslate">${item.name}</h3><span class="font-semibold text-[#d4af37]">${item.price.toFixed(2)} €</span></div>`).join('')}</div></details>`;
-                    } else {
-                        container.innerHTML += `<h2 class="text-2xl tracking-widest uppercase text-center my-8">${cat}</h2>${grouped[cat].map(item => `<div class="mb-6"><div class="flex justify-between items-baseline"><h3 class="text-lg text-stone-200 notranslate">${item.name}</h3><span class="font-semibold text-[#d4af37]">${item.price.toFixed(2)} €</span></div><p class="text-xs text-stone-500 mt-1">${item.description || ''}</p></div>`).join('')}`;
-                    }
-                }
-            } catch (e) {
-                document.getElementById('loader').innerHTML = "Errore di connessione. Riprova più tardi.";
-            }
+        async function init() {
+            const { data, error } = await supabase.from('menu').select('*').eq('available', true);
+            if (error) { console.error(error); return; }
+            document.getElementById('loader').style.display = 'none';
+            const content = document.getElementById('content');
+            data.forEach(p => {
+                content.innerHTML += `<div class="mb-6"><div class="flex justify-between"><h3 class="text-lg">${p.name}</h3><span>${p.price}€</span></div><p class="text-sm text-stone-500">${p.description || ''}</p></div>`;
+            });
         }
-        window.onload = loadMenu;
+        init();
     </script>
 </body>
 </html>
