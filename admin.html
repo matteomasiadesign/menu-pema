@@ -111,7 +111,7 @@
             <div id="section-gestione" class="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
                 <!-- Colonna Form (Aggiungi/Modifica) con scroll di sicurezza interno -->
                 <div class="lg:col-span-4">
-                    <div class="bg-dark-900 p-6 rounded-2xl border border-stone-900 sticky top-24 max-h-[calc(100vh-140px)] overflow-y-auto no-scrollbar">
+                    <div class="bg-dark-900 p-6 rounded-2xl border border-stone-900 lg:sticky lg:top-24 max-h-none lg:max-h-[calc(100vh-140px)] overflow-y-visible lg:overflow-y-auto no-scrollbar">
                         <h2 id="form-title" class="font-serif text-lg font-bold text-gold-500 mb-6 uppercase tracking-widest flex items-center gap-2">
                             <i class="fa-solid fa-plus-circle"></i> Aggiungi Prodotto
                         </h2>
@@ -162,13 +162,15 @@
                     </div>
                 </div>
 
-                <!-- Colonna Tabella dei Piatti -->
+                <!-- Colonna Tabella/Lista dei Piatti -->
                 <div class="lg:col-span-8 space-y-4">
                     <div class="flex bg-dark-900 px-5 py-4 border border-stone-900 rounded-2xl items-center gap-3.5 shadow-lg">
                         <i class="fa-solid fa-magnifying-glass text-stone-500"></i>
                         <input type="text" id="search-input" oninput="filterMenu()" placeholder="Cerca piatti..." class="bg-transparent w-full border-none focus:outline-none text-sm text-stone-100 font-sans">
                     </div>
-                    <div class="bg-dark-900 rounded-2xl border border-stone-900 overflow-hidden shadow-2xl">
+
+                    <!-- VISTA DESKTOP (Tabella ordinata) -->
+                    <div class="hidden md:block bg-dark-900 rounded-2xl border border-stone-900 overflow-hidden shadow-2xl">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse min-w-[500px]">
                                 <thead>
@@ -182,6 +184,11 @@
                                 <tbody id="table-body" class="divide-y divide-stone-900/60 text-sm"></tbody>
                             </table>
                         </div>
+                    </div>
+
+                    <!-- VISTA MOBILE (Schede ottimizzate per tocco) -->
+                    <div id="cards-container" class="grid grid-cols-1 gap-4 md:hidden">
+                        <!-- Popolato dinamicamente da JS per smartphone -->
                     </div>
                 </div>
             </div>
@@ -199,7 +206,7 @@
                     </select>
                 </div>
 
-                <!-- Elenco Piatti  Ordinabile -->
+                <!-- Elenco Piatti Ordinabile -->
                 <div id="reorder-list-container" class="space-y-3">
                     <!-- Elementi renderizzati dinamicamente -->
                 </div>
@@ -523,12 +530,19 @@
 
         function renderTable(items) {
             const tbody = document.getElementById('table-body');
+            const cardsContainer = document.getElementById('cards-container');
+            
             tbody.innerHTML = '';
+            cardsContainer.innerHTML = '';
+
             if (items.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-stone-500 font-serif italic tracking-widest text-xs">Nessun piatto trovato nel database.</td></tr>`;
+                cardsContainer.innerHTML = `<div class="p-8 text-center text-stone-500 font-serif italic tracking-widest text-xs">Nessun piatto trovato nel database.</div>`;
                 return;
             }
+
             items.forEach(item => {
+                // 1. Renderizzare la riga della tabella (Vista Desktop)
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-stone-900/40 transition-colors";
                 tr.innerHTML = `
@@ -544,6 +558,27 @@
                     </td>
                 `;
                 tbody.appendChild(tr);
+
+                // 2. Renderizzare la scheda del prodotto (Vista Mobile)
+                const card = document.createElement('div');
+                card.className = "bg-dark-900 p-5 rounded-2xl border border-stone-900 flex flex-col gap-3 shadow-lg";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start gap-4">
+                        <div>
+                            <h4 class="font-serif font-bold text-stone-100 text-base">${item.name}</h4>
+                            ${item.description ? `<p class="text-xs text-stone-400 mt-1 font-sans font-light">${item.description}</p>` : ''}
+                        </div>
+                        <span class="font-bold text-gold-500 font-serif text-base whitespace-nowrap">${item.price.toFixed(2)} €</span>
+                    </div>
+                    <div class="flex justify-between items-center mt-2 pt-3 border-t border-stone-850">
+                        <span class="bg-stone-850 text-stone-300 text-[9px] font-semibold px-2.5 py-1 rounded-md uppercase tracking-wider font-sans">${item.category}</span>
+                        <div class="flex gap-2">
+                            <button onclick="editProduct(${item.id})" class="bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 font-bold text-[10px] px-3.5 py-2 rounded-lg uppercase tracking-wider transition-all min-h-[44px] min-w-[44px]">Modifica</button>
+                            <button onclick="openDeleteModal(${item.id})" class="bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 font-bold text-[10px] px-3.5 py-2 rounded-lg uppercase tracking-wider transition-all min-h-[44px] min-w-[44px]">Elimina</button>
+                        </div>
+                    </div>
+                `;
+                cardsContainer.appendChild(card);
             });
         }
 
@@ -645,6 +680,9 @@
             });
 
             document.getElementById('cancel-btn').classList.remove('hidden');
+            
+            // Scroll automatico fino in cima su mobile per poter modificare subito il form
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function openDeleteModal(id) {
