@@ -36,6 +36,7 @@
         html { scroll-behavior: smooth; background-color: #050505; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Nasconde le barre e popup di Google Translate */
         .goog-te-banner-frame { display: none !important; }
         body { top: 0px !important; }
         .skiptranslate { display: none !important; }
@@ -45,7 +46,9 @@
 <body class="bg-dark-950 text-stone-300 font-sans min-h-screen flex flex-col selection:bg-gold-500 selection:text-dark-950">
 
     <div class="h-0.5 bg-gradient-to-r from-gold-700 via-gold-500 to-gold-700 w-full sticky top-0 z-50"></div>
-    <div id="google_translate_element" class="hidden"></div>
+    
+    <!-- FIX CRITICO: Contenitore reso invisibile ma non "hidden" così Google lo compila ugualmente -->
+    <div id="google_translate_element" class="absolute w-0 h-0 overflow-hidden opacity-0 pointer-events-none" style="left: -9999px; top: -9999px;"></div>
 
     <header class="py-12 px-4 text-center border-b border-stone-900 bg-dark-950/80 premium-blur sticky top-0.5 z-40">
         <div class="max-w-3xl mx-auto space-y-3">
@@ -98,15 +101,12 @@
 
         async function init() {
             try {
-                // Controllo di sicurezza: se Supabase non è stato caricato, evitiamo il crash
                 if (typeof window.supabase === 'undefined') {
                     throw new Error("Libreria Supabase non caricata.");
                 }
                 
-                // Connessione a Supabase
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 
-                // Recupero dei dati reali
                 const { data, error } = await supabaseClient
                     .from('menu')
                     .select('*')
@@ -120,7 +120,6 @@
                 console.error("Errore durante il caricamento del menu:", e);
                 menuItems = [];
             } finally {
-                // Questo blocco viene eseguito SEMPRE, togliendo il caricamento infinito anche in caso di errori
                 document.getElementById('loader').classList.add('hidden');
                 document.getElementById('menu-container').classList.remove('hidden');
                 renderCategories();
@@ -139,7 +138,6 @@
             
             if (menuItems.length === 0) return;
 
-            // Manteniamo "Tutti" per permettere a Google Translate di tradurlo
             const categories = ['Tutti', ...new Set(menuItems.map(item => item.category))];
             
             categories.forEach(cat => {
@@ -166,7 +164,6 @@
                 return;
             }
 
-            // Rendiamo TUTTI i piatti subito e li raggruppiamo
             const grouped = {};
             menuItems.forEach(item => {
                 if (!grouped[item.category]) grouped[item.category] = [];
@@ -176,7 +173,6 @@
             for (const category in grouped) {
                 const section = document.createElement('section');
                 section.dataset.section = category;
-                // Impostiamo tutto su 'block' di default per far leggere tutto al traduttore
                 section.className = "space-y-8 menu-section block";
                 
                 section.innerHTML = `
@@ -203,12 +199,9 @@
                 });
             }
             
-            // Applichiamo il filtro corrente subito dopo aver generato tutto
             filterMenuCSS(activeCategory);
         }
 
-        // Questa funzione ora nasconde le sezioni tramite CSS (senza distruggere i tag HTML) 
-        // salvando il lavoro di traduzione fatto da Google!
         function filterMenuCSS(targetCat) {
             activeCategory = targetCat;
 
@@ -237,15 +230,22 @@
             document.getElementById('active-flag').innerText = flags[langCode];
             document.getElementById('lang-dropdown').classList.add('hidden');
 
-            try {
-                const googleSelect = document.querySelector('.goog-te-combo');
-                if (googleSelect) {
-                    // Google usa il valore vuoto per ripristinare la lingua originale (Italiano)
-                    googleSelect.value = langCode === 'it' ? '' : langCode;
-                    // CRITICO: { bubbles: true } fa rimbalzare l'evento fino al motore di Google
-                    googleSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            const googleSelect = document.querySelector('.goog-te-combo');
+
+            if (googleSelect) {
+                // Imposta il valore e simula il cambio manuale
+                googleSelect.value = langCode === 'it' ? '' : langCode;
+                googleSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            } else {
+                // FALLBACK TOTALE: se il dropdown di Google non si carica, forziamo il cookie e aggiorniamo
+                if (langCode === 'it') {
+                    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+                } else {
+                    document.cookie = `googtrans=/it/${langCode}; path=/;`;
                 }
-            } catch (err) {}
+                location.reload();
+            }
         }
 
         function googleTranslateElementInit() {
@@ -267,7 +267,6 @@
             } catch(e) {}
         }
 
-        // L'evento init assicura il lancio solo a caricamento avvenuto
         window.addEventListener('DOMContentLoaded', init);
         
         window.addEventListener('click', (e) => {
