@@ -105,6 +105,7 @@
         let menuItems = [];
         let wineCategories = [];
         let translationsCache = { it: null };
+        let categoryTranslationsCache = {};
         let activeCategory = 'Tutti';
         let currentLang = 'it';
 
@@ -158,6 +159,24 @@
                 return dictionary[cleanText][targetLang];
             }
             return text;
+        }
+
+        function translateCategory(category, targetLang) {
+            if (!category) return "";
+            if (targetLang === 'it') return category;
+            // 1. Dizionario statico (etichette fisse come "Tutti", "Carta dei Vini")
+            const cleanText = category.toLowerCase().trim();
+            if (dictionary[cleanText] && dictionary[cleanText][targetLang]) {
+                return dictionary[cleanText][targetLang];
+            }
+            // 2. Traduzioni AI delle categorie del menu (dinamiche da Supabase)
+            const aiCats = categoryTranslationsCache[targetLang];
+            if (aiCats) {
+                const match = aiCats.find(c => c.name && c.name.toLowerCase().trim() === cleanText);
+                if (match && match.translated) return match.translated;
+            }
+            // 3. Fallback: nome originale italiano
+            return category;
         }
 
         async function init() {
@@ -267,11 +286,12 @@
         async function translateMenuWithGemini(targetLang) {
             if (menuItems.length === 0) return null;
             const sourceData = menuItems.map(item => ({ id: item.id, name: item.name, description: item.description || '' }));
+            const categories = [...new Set(menuItems.map(item => item.category))];
 
             const response = await fetch('/api/translate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ targetLang, items: sourceData })
+                body: JSON.stringify({ targetLang, items: sourceData, categories })
             });
 
             if (!response.ok) {
@@ -281,6 +301,9 @@
             }
 
             const result = await response.json();
+            if (result.translatedCategories) {
+                categoryTranslationsCache[targetLang] = result.translatedCategories;
+            }
             return result.translatedItems || null;
         }
 
@@ -310,7 +333,7 @@
             mainCategories.forEach(cat => {
                 const btn = document.createElement('button');
                 const isSelected = (cat === 'Carta dei Vini' && isWineCategory(activeCategory)) || activeCategory === cat;
-                const labelToShow = translateText(cat.toLowerCase(), currentLang) || cat;
+                const labelToShow = translateCategory(cat, currentLang) || cat;
 
                 btn.className = isSelected 
                     ? "font-serif text-xs tracking-[0.15em] text-gold-500 border-b border-gold-500 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 font-bold"
@@ -331,7 +354,7 @@
                 wBtn.className = (activeCategory === wineCat)
                     ? "w-full text-left font-serif text-[11px] tracking-wider text-gold-500 bg-gold-500/10 border border-gold-500/20 px-3.5 py-2.5 rounded-xl transition-all uppercase"
                     : "w-full text-left font-serif text-[11px] tracking-wider text-stone-400 hover:text-white hover:bg-stone-850 border border-transparent px-3.5 py-2.5 rounded-xl transition-all uppercase";
-                wBtn.innerText = translateText(wineCat.toLowerCase(), currentLang) || wineCat;
+                wBtn.innerText = translateCategory(wineCat, currentLang) || wineCat;
                 wBtn.onclick = () => { activeCategory = wineCat; toggleWinesDropdown(false); renderCategories(); renderMenu(); };
                 winesGrid.appendChild(wBtn);
             });
@@ -356,7 +379,7 @@
 
             sortedCategories.forEach(category => {
                 const section = document.createElement('section');
-                const catTitle = translateText(category.toLowerCase(), currentLang) || category;
+                const catTitle = translateCategory(category, currentLang) || category;
                 
                 if (isWineCategory(category)) {
                     section.className = "my-6 border-b border-stone-900 pb-4 animate-fade-in";
