@@ -43,7 +43,7 @@ CRITICAL RULES:
 
   const userQuery = `Translate this JSON list to ${langName}:\n${JSON.stringify(sourceData)}`;
 
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
 
   const payload = {
     contents: [{ parts: [{ text: userQuery }] }],
@@ -72,16 +72,34 @@ CRITICAL RULES:
   };
 
   try {
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    let response;
+    let lastErrText = '';
+    const maxRetries = 3;
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) break;
+
+      lastErrText = await response.text();
+      console.error(`Gemini API error (attempt ${attempt + 1}):`, response.status, lastErrText);
+
+      // Retry only on rate limit / transient errors
+      if (response.status === 429 || response.status >= 500) {
+        if (attempt < maxRetries - 1) {
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+      }
+      break;
+    }
 
     if (!response.ok) {
-      const errText = await response.text();
-      console.error('Gemini API error:', response.status, errText);
-      return res.status(502).json({ error: 'Errore chiamata Gemini', details: errText });
+      return res.status(502).json({ error: 'Errore chiamata Gemini', details: lastErrText });
     }
 
     const result = await response.json();
