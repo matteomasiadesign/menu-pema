@@ -47,9 +47,11 @@
         </div>
     </header>
 
+    <div id="wines-overlay" class="hidden fixed inset-0 bg-black/70 z-[55] transition-opacity duration-200" onclick="toggleWinesDropdown(false)"></div>
+
     <div class="border-b border-stone-900 bg-dark-950/95 premium-blur sticky top-0 z-40 shadow-xl relative">
         <div id="category-scroll" class="max-w-xl md:max-w-3xl mx-auto px-4 py-3.5 flex gap-4 md:gap-6 overflow-x-auto md:flex-wrap md:justify-center md:overflow-x-visible no-scrollbar items-center"></div>
-        <div id="wines-dropdown" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-[92%] max-w-md md:max-w-2xl bg-dark-900/98 border border-stone-850 rounded-2xl p-4 shadow-2xl premium-blur z-[60] transition-all duration-200">
+        <div id="wines-dropdown" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-[92%] max-w-md md:max-w-2xl bg-dark-900 border border-stone-850 rounded-2xl p-4 shadow-2xl z-[60] transition-all duration-200">
             <div id="wines-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-stone-300"></div>
         </div>
     </div>
@@ -197,8 +199,15 @@
         function toggleLangDropdown() { document.getElementById('lang-dropdown').classList.toggle('hidden'); }
         function toggleWinesDropdown(forceState) {
             const el = document.getElementById('wines-dropdown');
-            if (forceState !== undefined) { forceState ? el.classList.remove('hidden') : el.classList.add('hidden'); } 
-            else { el.classList.toggle('hidden'); }
+            const overlay = document.getElementById('wines-overlay');
+            let show;
+            if (forceState !== undefined) {
+                show = forceState;
+            } else {
+                show = el.classList.contains('hidden');
+            }
+            el.classList.toggle('hidden', !show);
+            overlay.classList.toggle('hidden', !show);
         }
 
         function toggleAllergensDropdown(productId, event) {
@@ -419,7 +428,7 @@
         window.addEventListener('DOMContentLoaded', init);
         window.addEventListener('click', (e) => {
             if (!e.target.closest('#lang-dropdown') && !e.target.onclick) document.getElementById('lang-dropdown').classList.add('hidden');
-            if (!e.target.closest('#wines-dropdown') && !e.target.closest('#category-scroll')) document.getElementById('wines-dropdown').classList.add('hidden');
+            if (!e.target.closest('#wines-dropdown') && !e.target.closest('#category-scroll') && !e.target.closest('#wines-overlay')) toggleWinesDropdown(false);
         }, true);
     </script>
 </body>
