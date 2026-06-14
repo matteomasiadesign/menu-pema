@@ -18,17 +18,10 @@
             theme: {
                 extend: {
                     colors: {
-                        gold: { 
-                            50: '#FAF6E8', 100: '#F4EBD1', 200: '#E9D7A3', 300: '#DEC375', 400: '#D3AF47', 
-                            500: '#C59B27', 600: '#9E7C1F', 700: '#765D17' 
-                        },
-                        dark: { 
-                            950: '#050505', 900: '#0A0A0A', 850: '#111111', 800: '#181818' 
-                        }
+                        gold: { 50: '#FAF6E8', 100: '#F4EBD1', 200: '#E9D7A3', 300: '#DEC375', 400: '#D3AF47', 500: '#C59B27', 600: '#9E7C1F', 700: '#765D17' },
+                        dark: { 950: '#050505', 900: '#0A0A0A', 850: '#111111', 800: '#181818' }
                     },
-                    fontFamily: { 
-                        serif: ['Cormorant Garamond', 'serif'], sans: ['Inter', 'sans-serif'] 
-                    }
+                    fontFamily: { serif: ['Cormorant Garamond', 'serif'], sans: ['Inter', 'sans-serif'] }
                 }
             }
         }
@@ -45,149 +38,100 @@
 </head>
 <body class="bg-dark-950 text-stone-300 font-sans min-h-screen flex flex-col selection:bg-gold-500 selection:text-dark-950">
 
-    <!-- Linea decorativa dorata superiore -->
     <div class="h-0.5 bg-gradient-to-r from-gold-700 via-gold-400 to-gold-700 w-full sticky top-0 z-50"></div>
 
-    <!-- Header Elegante con Logo WebP -->
     <header class="py-12 px-4 text-center border-b border-stone-900 bg-dark-950/90 premium-blur transition-all animate-fade-in">
-        <div class="max-w-xl mx-auto space-y-5">
-            
-            <div class="flex flex-col items-center justify-center space-y-4">
-                <!-- Logo WebP con path forzato relativo (./) -->
-                <img id="main-logo-img" src="./logo.webp" alt="PEMA Ristorante" class="h-24 sm:h-32 md:h-36 w-auto object-contain select-none transition-all duration-300 filter drop-shadow-[0_4px_12px_rgba(197,155,39,0.15)]" onerror="this.style.display='none'; document.getElementById('fallback-logo-txt').classList.remove('hidden');">
-                <h1 id="fallback-logo-txt" class="hidden font-serif text-4xl sm:text-5xl tracking-[0.25em] text-gold-500 font-light uppercase select-none">P E M A</h1>
-            </div>
-            
-            <div class="flex items-center justify-center gap-3">
-                <span class="h-px w-6 bg-gold-700/50"></span>
-                <p id="tagline-text" class="font-serif text-xs sm:text-sm tracking-[0.25em] text-stone-450 uppercase italic">Not exactly a neighborhood kitchen</p>
-                <span class="h-px w-6 bg-gold-700/50"></span>
-            </div>
+        <div class="max-w-xl mx-auto flex flex-col items-center justify-center space-y-4">
+            <img id="main-logo-img" src="./logo.webp" alt="PEMA Ristorante" class="h-24 sm:h-32 md:h-36 w-auto object-contain select-none transition-all duration-300 filter drop-shadow-[0_4px_12px_rgba(197,155,39,0.15)]" onerror="this.style.display='none'; document.getElementById('fallback-logo-txt').classList.remove('hidden');">
+            <h1 id="fallback-logo-txt" class="hidden font-serif text-4xl sm:text-5xl tracking-[0.25em] text-gold-500 font-light uppercase select-none">P E M A</h1>
         </div>
     </header>
 
-    <!-- Barra delle Categorie Sticky -->
-    <div class="border-b border-stone-900 bg-dark-950/95 premium-blur sticky top-0 z-40 shadow-xl">
-        <div id="category-scroll" class="max-w-xl md:max-w-3xl mx-auto px-4 py-4 flex md:flex-wrap gap-7 overflow-x-auto md:overflow-x-visible no-scrollbar justify-start md:justify-center items-center"></div>
-        
-        <!-- Dropdown per la Carta dei Vini -->
-        <div id="wines-dropdown-panel" class="hidden border-t border-stone-900 bg-dark-900/95 shadow-2xl premium-blur py-5 animate-fade-in">
-            <div class="max-w-xl md:max-w-2xl mx-auto px-4">
-                <p class="text-[10px] sm:text-xs text-gold-500/80 uppercase tracking-[0.2em] font-bold mb-4 border-b border-stone-850 pb-2.5 flex justify-between items-center">
-                    <span id="wine-panel-title">Seleziona una categoria di vini</span>
-                    <button onclick="toggleWinesDropdown(false)" class="hover:text-stone-100 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
-                </p>
-                <div id="wines-dropdown-grid" class="grid grid-cols-2 gap-3 text-left"></div>
-            </div>
+    <div class="border-b border-stone-900 bg-dark-950/95 premium-blur sticky top-0 z-40 shadow-xl relative">
+        <div id="category-scroll" class="max-w-xl md:max-w-3xl mx-auto px-4 py-3.5 flex gap-4 md:gap-6 overflow-x-auto md:flex-wrap md:justify-center md:overflow-x-visible no-scrollbar items-center"></div>
+        <div id="wines-dropdown" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-1.5 w-[92%] max-w-md md:max-w-2xl bg-dark-900/98 border border-stone-850 rounded-2xl p-4 shadow-2xl premium-blur z-50 transition-all duration-200">
+            <div id="wines-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-stone-300"></div>
         </div>
     </div>
 
-    <!-- Area Principale -->
-    <main class="max-w-xl mx-auto px-4 py-12 flex-1 w-full">
-        <!-- Loader di Connessione -->
-        <div id="loader" class="text-center py-20 text-stone-500 font-serif italic">
-            <i class="fa-solid fa-circle-notch animate-spin text-2xl text-gold-500 mb-5 block mx-auto"></i>
-            <span class="tracking-widest uppercase text-xs">Caricamento della selezione culinaria...</span>
+    <main class="max-w-xl mx-auto px-4 py-10 flex-1 w-full">
+        <div id="loader" class="text-center py-16 text-stone-500 font-serif italic">
+            <i class="fa-solid fa-circle-notch animate-spin text-xl text-gold-500 mb-4 block mx-auto"></i>
+            <span class="tracking-widest uppercase text-[9px]">Caricamento della selezione culinaria...</span>
         </div>
 
-        <!-- Shimmering Placeholder per traduzione AI -->
         <div id="shimmer-container" class="space-y-12 hidden">
-            <div class="text-center"><div class="h-7 w-36 bg-stone-900 mx-auto rounded-md shimmer-card"></div></div>
+            <div class="text-center"><div class="h-6 w-32 bg-stone-900 mx-auto rounded-md shimmer-card"></div></div>
             <div class="space-y-6">
-                <div class="p-5 rounded-xl border border-stone-900 space-y-4">
-                    <div class="h-6 w-2/3 bg-stone-900 rounded-md shimmer-card"></div>
-                    <div class="h-4 w-full bg-stone-900 rounded-md shimmer-card"></div>
-                    <div class="h-4 w-4/5 bg-stone-900 rounded-md shimmer-card"></div>
+                <div class="p-4 rounded-xl border border-stone-900 space-y-3">
+                    <div class="h-5 w-2/3 bg-stone-900 rounded-md shimmer-card"></div>
+                    <div class="h-3 w-full bg-stone-900 rounded-md shimmer-card"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Contenitore del Menù -->
         <div id="menu-container" class="space-y-16 hidden"></div>
     </main>
 
-    <!-- Selettore Lingua Sticky -->
     <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2.5">
-        <div id="lang-dropdown" class="hidden bg-dark-900/95 border border-stone-850 rounded-2xl p-2 shadow-2xl premium-blur flex flex-col gap-1 mb-1 transition-all">
-            <button onclick="changeLanguage('it')" class="flex items-center gap-3.5 px-6 py-3.5 hover:bg-stone-900 rounded-xl text-xs font-semibold tracking-widest uppercase transition-all text-left text-stone-300 min-h-[48px]"><span class="text-lg">🇮🇹</span> Italiano</button>
-            <button onclick="changeLanguage('en')" class="flex items-center gap-3.5 px-6 py-3.5 hover:bg-stone-900 rounded-xl text-xs font-semibold tracking-widest uppercase transition-all text-left text-stone-300 min-h-[48px]"><span class="text-lg">🇬🇧</span> English</button>
-            <button onclick="changeLanguage('fr')" class="flex items-center gap-3.5 px-6 py-3.5 hover:bg-stone-900 rounded-xl text-xs font-semibold tracking-widest uppercase transition-all text-left text-stone-300 min-h-[48px]"><span class="text-lg">🇫🇷</span> Français</button>
-            <button onclick="changeLanguage('de')" class="flex items-center gap-3.5 px-6 py-3.5 hover:bg-stone-900 rounded-xl text-xs font-semibold tracking-widest uppercase transition-all text-left text-stone-300 min-h-[48px]"><span class="text-lg">🇩🇪</span> Deutsch</button>
+        <div id="lang-dropdown" class="hidden bg-dark-900/95 border border-stone-850 rounded-2xl p-1.5 shadow-2xl premium-blur flex flex-col gap-1 mb-1 transition-all">
+            <button onclick="changeLanguage('it')" class="flex items-center gap-3.5 px-5 py-3 hover:bg-stone-900 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all text-left text-stone-300"><span class="text-base">🇮🇹</span> Italiano</button>
+            <button onclick="changeLanguage('en')" class="flex items-center gap-3.5 px-5 py-3 hover:bg-stone-900 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all text-left text-stone-300"><span class="text-base">🇬🇧</span> English</button>
+            <button onclick="changeLanguage('fr')" class="flex items-center gap-3.5 px-5 py-3 hover:bg-stone-900 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all text-left text-stone-300"><span class="text-base">🇫🇷</span> Français</button>
+            <button onclick="changeLanguage('de')" class="flex items-center gap-3.5 px-5 py-3 hover:bg-stone-900 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all text-left text-stone-300"><span class="text-base">🇩🇪</span> Deutsch</button>
+            <button onclick="changeLanguage('es')" class="flex items-center gap-3.5 px-5 py-3 hover:bg-stone-900 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all text-left text-stone-300"><span class="text-base">🇪🇸</span> Español</button>
+            <button onclick="changeLanguage('pt')" class="flex items-center gap-3.5 px-5 py-3 hover:bg-stone-900 rounded-xl text-[10px] font-semibold tracking-widest uppercase transition-all text-left text-stone-300"><span class="text-base">🇵🇹</span> Português</button>
         </div>
         <button onclick="toggleLangDropdown()" class="w-14 h-14 bg-dark-900 hover:bg-dark-850 border border-gold-500/30 hover:border-gold-500 text-white rounded-full flex items-center justify-center text-2xl shadow-2xl transition-all duration-300 active:scale-95 cursor-pointer">
             <span id="active-flag">🇮🇹</span>
         </button>
     </div>
 
-    <!-- Footer PEMA Ristorante -->
-    <footer class="py-14 border-t border-stone-950 text-center text-xs text-stone-500 tracking-[0.2em] bg-black uppercase">
-        <p class="font-serif italic mb-3.5 tracking-[0.3em] text-gold-500/80 text-sm sm:text-base">PEMA Ristorante</p>
+    <footer class="py-12 border-t border-stone-950 text-center text-[9px] text-stone-500 tracking-[0.2em] bg-black uppercase">
+        <p class="font-serif italic mb-2.5 tracking-[0.3em] text-gold-500/80">PEMA Bistrot & Fine Dining</p>
         <p>&copy; 2026 • All rights reserved</p>
     </footer>
 
     <script>
         const SUPABASE_URL = "https://cpmianmjcxhputneygsw.supabase.co";
         const SUPABASE_KEY = "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm";
+        
+        // INSERISCI QUI LA TUA CHIAVE API GEMINI PER ABILITARE LE TRADUZIONI DINAMICHE
         const apiKey = ""; 
         
         let supabaseClient;
         let menuItems = [];
-        let dbCategories = [];
-        let dbAllergens = [];
-        let dbProductAllergens = [];
-        
+        let wineCategories = [];
         let translationsCache = { it: null };
-        let activeCategory = 'Tutti'; 
-        let activeWineCategory = null; 
+        let activeCategory = 'Tutti';
         let currentLang = 'it';
 
-        const localDictionary = {
-            it: {
-                "Tutti": "Tutti", "Carta dei Vini": "Carta dei Vini", "Contiene": "Contiene",
-                "Seleziona una categoria di vini": "Seleziona una categoria di vini",
-                "min. 2 persone, il prezzo indicato è a persona": "min. 2 persone, il prezzo indicato è a persona",
-                "minimo 2 porzioni, il prezzo indicato si intende a persona": "minimo 2 porzioni, il prezzo indicato si intende a persona",
-                "Min. 2 persone": "Min. 2 persone", "/ persona": "/ persona", "Allergeni": "Allergeni"
-            },
-            en: {
-                "Tutti": "All", "Carta dei Vini": "Wine List", "Contiene": "Contains",
-                "Seleziona una categoria di vini": "Select a wine category",
-                "min. 2 persone, il prezzo indicato è a persona": "min. 2 people, the price shown is per person",
-                "minimo 2 porzioni, il prezzo indicato si intende a persona": "minimum 2 portions, the price shown is per person",
-                "Min. 2 persone": "Min. 2 people", "/ persona": "/ person", "Allergeni": "Allergens",
-                "Per Iniziare": "To Begin", "Primi Piatti": "First Courses", "Brace e Forno": "Grill & Oven", "Per Accompagnare": "Sides", "Il Dolce": "Desserts",
-                "Vini Macerati": "Skin-contact Wines", "Vini Bianchi Naturali": "Natural White Wines", "Vini Bianchi Regionali": "Regional White Wines", 
-                "Vini Rossi Naturali": "Natural Red Wines", "Vini Rossi": "Red Wines", "Vini Frizzanti Regionali": "Regional Sparkling Wines", "Vini Rosati": "Rosé Wines", 
-                "Vini Rossi Nazionali e Internazionali": "National & International Red Wines", "Vini Bianchi Nazionali e Internazionali": "National & International White Wines", 
-                "Mezze bottiglie di vino": "Half Bottles of Wine", "Vini da Dessert": "Dessert Wines",
-                "Glutine": "Gluten", "Crostacei": "Crustaceans", "Frutta secca": "Nuts", "Latte": "Dairy", "Mollusco": "Molluscs", "Pesce": "Fish", "Sedano": "Celery", "Senape": "Mustard", "Sesamo": "Sesame", "Soia": "Soy", "Uova": "Eggs", "Anidride solforosa": "Sulphur dioxide", "Lupino": "Lupin", "Arachidi": "Peanuts"
-            },
-            fr: {
-                "Tutti": "Tout", "Carta dei Vini": "Carte des Vins", "Contiene": "Contient",
-                "Seleziona una categoria di vini": "Sélectionnez une catégorie de vin",
-                "min. 2 persone, il prezzo indicato è a persona": "min. 2 personnes, le prix indiqué est par personne",
-                "minimo 2 porzioni, il prezzo indicato si intende a persona": "minimum 2 portions, le prix indiqué est par personne",
-                "Min. 2 persone": "Min. 2 personnes", "/ persona": "/ personne", "Allergeni": "Allergènes",
-                "Per Iniziare": "Pour Commencer", "Primi Piatti": "Premiers Plats", "Brace e Forno": "Grill & Four", "Per Accompagnare": "Accompagnements", "Il Dolce": "Desserts",
-                "Vini Macerati": "Vins Macérés", "Vini Bianchi Naturali": "Vins Blancs Naturels", "Vini Bianchi Regionali": "Vins Blancs Régionaux", 
-                "Vini Rossi Naturali": "Vins Rouges Naturels", "Vini Rossi": "Vins Rouges", "Vini Frizzanti Regionali": "Vins Pétillants Régionaux", "Vini Rosati": "Vins Rosés", 
-                "Vini Rossi Nazionali e Internazionali": "Vins Rouges Nationaux et Internationaux", "Vini Bianchi Nazionali e Internazionali": "Vins Blancs Nationaux et Internationaux", 
-                "Mezze bottiglie di vino": "Demi-bouteilles de Vin", "Vini da Dessert": "Vins de Dessert",
-                "Glutine": "Gluten", "Crostacei": "Crustacés", "Frutta secca": "Fruits à coque", "Latte": "Lait", "Mollusco": "Mollusques", "Pesce": "Poisson", "Sedano": "Céleri", "Senape": "Moutarde", "Sesamo": "Sésame", "Soia": "Soja", "Uova": "Œufs", "Anidride solforosa": "Anhydride sulfureux", "Lupino": "Lupin", "Arachidi": "Arachides"
-            },
-            de: {
-                "Tutti": "Alle", "Carta dei Vini": "Weinkarte", "Contiene": "Enthält",
-                "Seleziona una categoria di vini": "Wählen Sie eine Weinkategorie",
-                "min. 2 persone, il prezzo indicato è a persona": "Mind. 2 Personen, der angegebene Preis gilt pro Person",
-                "minimo 2 porzioni, il prezzo indicato si intende a persona": "Mindestens 2 Portionen, der angegebene Preis gilt pro Person",
-                "Min. 2 persone": "Min. 2 Personen", "/ persona": "/ Person", "Allergeni": "Allergene",
-                "Per Iniziare": "Zum Anfang", "Primi Piatti": "Nudelgerichte", "Brace e Forno": "Grill & Ofen", "Per Accompagnare": "Beilagen", "Il Dolce": "Dessert",
-                "Vini Macerati": "Maischevergorene Weine", "Vini Bianchi Naturali": "Natürliche Weißweine", "Vini Bianchi Regionali": "Regionale Weißweine", 
-                "Vini Rossi Naturali": "Natürliche Rotweine", "Vini Rossi": "Rotweine", "Vini Frizzanti Regionali": "Regionale Perlweine", "Vini Rosati": "Roséweine", 
-                "Vini Rossi Nazionali e Internazionali": "Nationale & Internationale Rotweine", "Vini Bianchi Nazionali e Internazionali": "Nationale & Internationale Weißweine", 
-                "Mezze bottiglie di vino": "Halbe Weinflaschen", "Vini da Dessert": "Dessertweine",
-                "Glutine": "Gluten", "Crostacei": "Krebstiere", "Frutta secca": "Schalenfrüchte", "Latte": "Milch", "Mollusco": "Weichtiere", "Pesce": "Fisch", "Sedano": "Sellerie", "Senape": "Senf", "Sesamo": "Sesamsamen", "Soia": "Sojabohnen", "Uova": "Eier", "Anidride solforosa": "Schwefeldioxid", "Lupino": "Lupine", "Arachidi": "Erdnüsse"
-            }
+        // Dizionario Locale per UI e Allergeni
+        const dictionary = {
+            "tutti": { en: "All", fr: "Tout", de: "Alle", es: "Todos", pt: "Todos" },
+            "carta dei vini": { en: "Wine List", fr: "Carte des Vins", de: "Weinkarte", es: "Carta de Vinos", pt: "Carta de Vinhos" },
+            "allergeni": { en: "Allergens", fr: "Allergènes", de: "Allergene", es: "Alérgenos", pt: "Alergênios" },
+            "contiene": { en: "Contains", fr: "Contient", de: "Enthält", es: "Contiene", pt: "Contém" },
+            "min. 2 persone": { en: "Min. 2 people", fr: "Min. 2 personnes", de: "Min. 2 Personen", es: "Mín. 2 personas", pt: "Mín. 2 pessoas" },
+            "/ persona": { en: "/ person", fr: "/ personne", de: "/ Person", es: "/ persona", pt: "/ pessoa" },
+            "seleziona una categoria di vini": { en: "Select a wine category", fr: "Sélectionnez une catégorie de vin", de: "Wählen Sie eine Weinkategorie", es: "Selecciona una categoría de vinos", pt: "Selecione uma categoria de vinhos" },
+            
+            // Allergeni
+            "arachidi": { en: "Peanuts", fr: "Arachides", de: "Erdnüsse", es: "Cacahuetes", pt: "Amendoins" },
+            "crostacei": { en: "Crustaceans", fr: "Crustacés", de: "Krebstiere", es: "Crustáceos", pt: "Crustáceos" },
+            "frutta secca": { en: "Nuts", fr: "Fruits à coque", de: "Schalenfrüchte", es: "Frutos secos", pt: "Frutos secos" },
+            "glutine": { en: "Gluten", fr: "Gluten", de: "Gluten", es: "Gluten", pt: "Glúten" },
+            "latte": { en: "Milk/Dairy", fr: "Lait", de: "Milch", es: "Lácteos", pt: "Leite" },
+            "molluschi": { en: "Molluscs", fr: "Mollusques", de: "Weichtiere", es: "Moluscos", pt: "Moluscos" },
+            "mollusco": { en: "Molluscs", fr: "Mollusques", de: "Weichtiere", es: "Moluscos", pt: "Moluscos" },
+            "pesce": { en: "Fish", fr: "Poisson", de: "Fisch", es: "Pescado", pt: "Peixe" },
+            "sedano": { en: "Celery", fr: "Céleri", de: "Sellerie", es: "Apio", pt: "Aipo" },
+            "senape": { en: "Mustard", fr: "Moutarde", de: "Senf", es: "Mostaza", pt: "Mostarda" },
+            "sesamo": { en: "Sesame", fr: "Sésame", de: "Sesam", es: "Sésamo", pt: "Gergelim" },
+            "soia": { en: "Soy", fr: "Soja", de: "Soja", es: "Soja", pt: "Soja" },
+            "uova": { en: "Eggs", fr: "Œufs", de: "Eier", es: "Huevos", pt: "Ovos" },
+            "anidride solforosa": { en: "Sulfur dioxide", fr: "Anhydride sulfureux", de: "Schwefeldioxid", es: "Dióxido de azufre", pt: "Dióxido de enxofre" },
+            "lupino": { en: "Lupin", fr: "Lupin", de: "Lupinen", es: "Altramuces", pt: "Tremoço" }
         };
 
         try {
@@ -199,85 +143,73 @@
         function isWineCategory(cat) {
             if (!cat) return false;
             const lowerCat = cat.toLowerCase();
-            return lowerCat.includes('vini') || 
-                   lowerCat.includes('champagne') || 
-                   lowerCat.includes('franciacorta') || 
-                   lowerCat.includes('macerati') || 
-                   lowerCat.includes('bottigle') ||
-                   lowerCat.includes('bottiglie') ||
-                   lowerCat.includes('dessert');
+            return lowerCat.includes('vini') || lowerCat.includes('champagne') || 
+                   lowerCat.includes('franciacorta') || lowerCat.includes('macerati') || 
+                   lowerCat.includes('bottig') || lowerCat.includes('dessert');
+        }
+
+        function translateText(text, targetLang) {
+            if (!text) return "";
+            if (targetLang === 'it') return text;
+            const cleanText = text.toLowerCase().trim();
+            if (dictionary[cleanText] && dictionary[cleanText][targetLang]) {
+                return dictionary[cleanText][targetLang];
+            }
+            return text;
         }
 
         async function init() {
             try {
-                if (!supabaseClient) throw new Error("Client Supabase offline.");
+                if (!supabaseClient) throw new Error("Client offline.");
+                const { data, error } = await supabaseClient
+                    .from('products')
+                    .select('id, name, description, price, min_persons, price_per_person, sort_order, available, categories ( id, name, sort_order ), product_allergens ( allergens ( id, name ) )')
+                    .eq('available', true);
 
-                const fetchPromise = Promise.all([
-                    supabaseClient.from('categories').select('*').order('sort_order', { ascending: true }),
-                    supabaseClient.from('products').select('*').eq('available', true).order('sort_order', { ascending: true }),
-                    supabaseClient.from('allergens').select('*'),
-                    supabaseClient.from('product_allergens').select('*')
-                ]);
-
-                const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error("Timeout")), 6000)
-                );
-
-                const [categoriesRes, productsRes, allergensRes, prodAllergensRes] = await Promise.race([fetchPromise, timeoutPromise]);
-
-                if (categoriesRes.error) throw categoriesRes.error;
-                if (productsRes.error) throw productsRes.error;
-
-                dbCategories = categoriesRes.data || [];
-                menuItems = productsRes.data || [];
-                dbAllergens = allergensRes.data || [];
-                dbProductAllergens = prodAllergensRes.data || [];
-
+                if (error) throw error;
+                
+                if (data) {
+                    menuItems = data.map(item => ({
+                        id: item.id, name: item.name, description: item.description,
+                        price: parseFloat(item.price), min_persons: item.min_persons, price_per_person: item.price_per_person,
+                        sort_order: item.sort_order || 999,
+                        category: item.categories ? item.categories.name : 'Senza Categoria',
+                        category_sort: item.categories ? item.categories.sort_order : 999,
+                        allergens: item.product_allergens ? item.product_allergens.map(pa => pa.allergens ? pa.allergens.name : null).filter(Boolean) : []
+                    }));
+                }
+                
                 document.getElementById('loader').classList.add('hidden');
                 document.getElementById('menu-container').classList.remove('hidden');
-                
                 renderCategories();
                 renderMenu();
-
             } catch (e) {
                 console.error(e);
                 document.getElementById('loader').innerHTML = `
-                    <div class="text-rose-500/90 font-sans text-sm p-6 border border-rose-950/40 rounded-xl bg-rose-950/15 max-w-sm mx-auto shadow-2xl backdrop-blur text-center">
+                    <div class="text-rose-500/90 font-sans text-sm p-6 border border-rose-950/40 rounded-xl bg-rose-950/15 max-w-sm mx-auto shadow-2xl backdrop-blur">
                         <i class="fa-solid fa-triangle-exclamation mb-3 text-2xl text-rose-500 animate-pulse"></i><br>
                         <span class="font-serif text-gold-500 text-base block mb-1 uppercase tracking-widest">Connessione Rallentata</span>
-                        <span class="text-xs text-stone-400 block mb-5 leading-relaxed">Assicurati di aver registrato la colonna 'available' all'interno del DB o ricarica la pagina.</span>
-                        <button onclick="location.reload()" class="bg-gold-500 text-dark-950 font-bold px-4 py-2.5 rounded-lg text-[10px] tracking-widest uppercase hover:bg-gold-600 active:scale-95 transition-all cursor-pointer">Ricarica</button>
-                    </div>
-                `;
+                        <span class="text-xs text-stone-400 block mb-5 leading-relaxed">Errore di rete. Per favore, ricarica la pagina.</span>
+                        <button onclick="location.reload()" class="bg-gold-500 text-dark-950 font-bold px-4 py-2.5 rounded-lg text-[10px] tracking-widest uppercase hover:bg-gold-600 active:scale-95 transition-all">Riprova Connessione</button>
+                    </div>`;
             }
         }
 
         function toggleLangDropdown() { document.getElementById('lang-dropdown').classList.toggle('hidden'); }
-
         function toggleWinesDropdown(forceState) {
-            const panel = document.getElementById('wines-dropdown-panel');
-            if (forceState !== undefined) {
-                if (forceState) panel.classList.remove('hidden');
-                else panel.classList.add('hidden');
-            } else {
-                panel.classList.toggle('hidden');
-            }
+            const el = document.getElementById('wines-dropdown');
+            if (forceState !== undefined) { forceState ? el.classList.remove('hidden') : el.classList.add('hidden'); } 
+            else { el.classList.toggle('hidden'); }
         }
 
         function toggleAllergensDropdown(productId, event) {
-            if (event) {
-                event.stopPropagation();
-                event.preventDefault();
-            }
+            if (event) { event.stopPropagation(); event.preventDefault(); }
             const targetPanel = document.getElementById(`allergen-panel-${productId}`);
             const targetChevron = document.getElementById(`allergen-chevron-${productId}`);
             const isCurrentlyOpen = !targetPanel.classList.contains('hidden');
-
-            const allPanels = document.querySelectorAll('.allergen-dropdown-panel');
-            const allChevrons = document.querySelectorAll('.allergen-chevron-icon');
-
-            allPanels.forEach(panel => panel.classList.add('hidden'));
-            allChevrons.forEach(chevron => chevron.classList.remove('rotate-180'));
+            
+            document.querySelectorAll('.allergen-dropdown-panel').forEach(panel => panel.classList.add('hidden'));
+            document.querySelectorAll('.allergen-chevron-icon').forEach(chevron => chevron.classList.remove('rotate-180'));
 
             if (!isCurrentlyOpen) {
                 targetPanel.classList.remove('hidden');
@@ -285,33 +217,14 @@
             }
         }
 
-        function translateLocal(targetLang) {
-            return menuItems.map(item => {
-                const translateText = (text) => {
-                    if (!text) return "";
-                    if (localDictionary[targetLang] && localDictionary[targetLang][text]) {
-                        return localDictionary[targetLang][text];
-                    }
-                    return text;
-                };
-                return {
-                    id: item.id,
-                    name: translateText(item.name),
-                    description: translateText(item.description)
-                };
-            });
-        }
-
         async function changeLanguage(langCode) {
-            const flags = { it: '🇮🇹', en: '🇬🇧', fr: '🇫🇷', de: '🇩🇪' };
+            const flags = { it: '🇮🇹', en: '🇬🇧', fr: '🇫🇷', de: '🇩🇪', es: '🇪🇸', pt: '🇵🇹' };
             document.getElementById('active-flag').innerText = flags[langCode];
             document.getElementById('lang-dropdown').classList.add('hidden');
             toggleWinesDropdown(false);
             
             if (langCode === currentLang) return;
             currentLang = langCode;
-
-            document.getElementById('wine-panel-title').innerText = getTranslatedText("Seleziona una categoria di vini", currentLang);
 
             if (langCode === 'it' || translationsCache[langCode]) {
                 renderCategories();
@@ -320,7 +233,8 @@
             }
 
             if (!apiKey) {
-                translationsCache[langCode] = translateLocal(langCode);
+                console.warn("API Key Gemini non definita. Non è possibile tradurre i piatti dinamicamente.");
+                translationsCache[langCode] = menuItems.map(item => ({ id: item.id, name: item.name, description: item.description }));
                 renderCategories();
                 renderMenu();
                 return;
@@ -338,7 +252,7 @@
                     document.getElementById('active-flag').innerText = flags['it'];
                 }
             } catch (err) {
-                console.error(err);
+                console.error("Errore traduzione AI:", err);
                 currentLang = 'it';
                 document.getElementById('active-flag').innerText = flags['it'];
             } finally {
@@ -351,12 +265,19 @@
 
         async function translateMenuWithGemini(targetLang) {
             if (menuItems.length === 0) return null;
-            const languageNames = { en: 'English', fr: 'French', de: 'German' };
+            const languageNames = { en: 'English', fr: 'French', de: 'German', es: 'Spanish', pt: 'Portuguese' };
             const langName = languageNames[targetLang];
             const sourceData = menuItems.map(item => ({ id: item.id, name: item.name, description: item.description || '' }));
-            const systemPrompt = `You are an elite, Michelin-star level translator specializing in Italian fine dining. Translate the provided list of dishes (names and descriptions) into elegant, natural, and mouth-watering ${langName}. Preserve technical culinary terms and brand-like Italian regional ingredients without translating them mechanically. Return strictly a JSON array corresponding to the requested schema.`;
-            const userQuery = `Translate this JSON list to ${langName}:\n${JSON.stringify(sourceData)}`;
             
+            const systemPrompt = `You are a professional culinary translator for a Michelin-star level Italian restaurant.
+Translate the provided JSON array of Italian dishes into elegant, natural ${langName}.
+CRITICAL RULES:
+1. Translate BOTH the dish names (name) and the descriptions (description). Do NOT leave the main dish name in Italian unless it has no equivalent.
+2. KEEP protected regional names, specific cheeses, and wines in original Italian (e.g., leave "Fiore Sardo", "Pecorino", "Barolo", "Fregula", "Guanciale" in Italian).
+3. The translation must sound appetizing and professional.
+4. Return ONLY a valid JSON object matching the provided schema, with no markdown outside the JSON.`;
+            
+            const userQuery = `Translate this JSON list to ${langName}:\n${JSON.stringify(sourceData)}`;
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
             const payload = {
@@ -382,7 +303,7 @@
             };
 
             const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (!response.ok) throw new Error("API Error");
+            if (!response.ok) throw new Error("Chiamata API fallita");
             const result = await response.json();
             const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
             if (textResponse) {
@@ -392,77 +313,56 @@
             return null;
         }
 
-        function getTranslatedText(keyword, lang) {
-            return (localDictionary[lang] && localDictionary[lang][keyword]) || keyword;
-        }
-
         function renderCategories() {
             const bar = document.getElementById('category-scroll');
+            const winesGrid = document.getElementById('wines-grid');
             bar.innerHTML = '';
-            
-            const labelAll = getTranslatedText("Tutti", currentLang);
-            const labelWines = getTranslatedText("Carta dei Vini", currentLang);
-            
-            const foodCategoryNames = dbCategories
-                .filter(cat => !isWineCategory(cat.name))
-                .map(cat => cat.name);
-                
-            const categoriesToRender = [labelAll, ...foodCategoryNames, labelWines];
-            
-            categoriesToRender.forEach(cat => {
-                const btn = document.createElement('button');
-                let isActive = false;
-                
-                if (cat === labelAll && activeCategory === 'Tutti') isActive = true;
-                else if (cat === labelWines && activeCategory === 'Carta dei Vini') isActive = true;
-                else if (cat === activeCategory) isActive = true;
+            winesGrid.innerHTML = '';
 
-                btn.className = isActive 
-                    ? "font-serif text-sm sm:text-base tracking-[0.15em] text-gold-500 border-b-2 border-gold-500 pb-2 uppercase transition-all whitespace-nowrap cursor-pointer font-bold"
-                    : "font-serif text-sm sm:text-base tracking-[0.15em] text-stone-500 hover:text-stone-300 pb-2 uppercase transition-all whitespace-nowrap cursor-pointer";
+            if (menuItems.length === 0) return;
+            
+            const categoryMap = {};
+            menuItems.forEach(item => { categoryMap[item.category] = item.category_sort; });
+            const sortedRawCategories = Object.keys(categoryMap).sort((a, b) => categoryMap[a] - categoryMap[b]);
+            
+            const foodCategories = [];
+            wineCategories = [];
+            
+            sortedRawCategories.forEach(cat => {
+                if (isWineCategory(cat)) wineCategories.push(cat);
+                else foodCategories.push(cat);
+            });
+
+            const mainCategories = ['Tutti', ...foodCategories];
+            if (wineCategories.length > 0) mainCategories.push('Carta dei Vini');
+
+            mainCategories.forEach(cat => {
+                const btn = document.createElement('button');
+                const isSelected = (cat === 'Carta dei Vini' && isWineCategory(activeCategory)) || activeCategory === cat;
+                const labelToShow = translateText(cat.toLowerCase(), currentLang) || cat;
+
+                btn.className = isSelected 
+                    ? "font-serif text-xs tracking-[0.15em] text-gold-500 border-b border-gold-500 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 font-bold"
+                    : "font-serif text-xs tracking-[0.15em] text-stone-500 hover:text-stone-300 pb-1.5 uppercase transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5";
                 
-                btn.innerText = getTranslatedText(cat, currentLang);
-                
-                btn.onclick = () => { 
-                    if (cat === labelWines) {
-                        activeCategory = 'Carta dei Vini';
-                        activeWineCategory = null; 
-                        toggleWinesDropdown();
-                        renderWinesDropdownGrid();
-                    } else {
-                        activeCategory = cat === labelAll ? 'Tutti' : cat;
-                        activeWineCategory = null;
-                        toggleWinesDropdown(false);
-                    }
-                    renderCategories(); 
-                    renderMenu(); 
-                };
+                if (cat === 'Carta dei Vini') {
+                    btn.innerHTML = `${labelToShow} <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200"></i>`;
+                    btn.onclick = (e) => { e.stopPropagation(); toggleWinesDropdown(); };
+                } else {
+                    btn.innerText = labelToShow;
+                    btn.onclick = () => { activeCategory = cat; toggleWinesDropdown(false); renderCategories(); renderMenu(); };
+                }
                 bar.appendChild(btn);
             });
-        }
 
-        function renderWinesDropdownGrid() {
-            const grid = document.getElementById('wines-dropdown-grid');
-            grid.innerHTML = '';
-            const wineCategories = dbCategories.filter(cat => isWineCategory(cat.name));
-            
-            wineCategories.forEach(cat => {
-                const btn = document.createElement('button');
-                const isSelected = activeWineCategory === cat.name;
-                
-                btn.className = isSelected 
-                    ? "text-left text-xs sm:text-sm font-sans font-bold tracking-wider text-gold-500 border-l-2 border-gold-500 pl-3 py-2.5 uppercase transition-all"
-                    : "text-left text-xs sm:text-sm font-sans text-stone-400 hover:text-stone-100 pl-3 py-2.5 uppercase transition-all";
-                
-                btn.innerText = getTranslatedText(cat.name, currentLang);
-                btn.onclick = () => {
-                    activeCategory = 'Carta dei Vini';
-                    activeWineCategory = cat.name;
-                    toggleWinesDropdown(false);
-                    renderCategories();
-                    renderMenu();
-                };
-                grid.appendChild(btn);
+            wineCategories.forEach(wineCat => {
+                const wBtn = document.createElement('button');
+                wBtn.className = (activeCategory === wineCat)
+                    ? "w-full text-left font-serif text-[11px] tracking-wider text-gold-500 bg-gold-500/10 border border-gold-500/20 px-3.5 py-2.5 rounded-xl transition-all uppercase"
+                    : "w-full text-left font-serif text-[11px] tracking-wider text-stone-400 hover:text-white hover:bg-stone-850 border border-transparent px-3.5 py-2.5 rounded-xl transition-all uppercase";
+                wBtn.innerText = translateText(wineCat.toLowerCase(), currentLang) || wineCat;
+                wBtn.onclick = () => { activeCategory = wineCat; toggleWinesDropdown(false); renderCategories(); renderMenu(); };
+                winesGrid.appendChild(wBtn);
             });
         }
 
@@ -470,137 +370,85 @@
             const container = document.getElementById('menu-container');
             container.innerHTML = '';
 
-            let filtered = [];
-            if (activeCategory === 'Tutti') {
-                filtered = menuItems;
-            } else if (activeCategory === 'Carta dei Vini') {
-                if (activeWineCategory) {
-                    filtered = menuItems.filter(item => {
-                        const itemCat = dbCategories.find(c => c.id === item.category_id);
-                        return itemCat && itemCat.name === activeWineCategory;
-                    });
-                } else {
-                    filtered = menuItems.filter(item => {
-                        const itemCat = dbCategories.find(c => c.id === item.category_id);
-                        return itemCat && isWineCategory(itemCat.name);
-                    });
-                }
-            } else {
-                filtered = menuItems.filter(item => {
-                    const itemCat = dbCategories.find(c => c.id === item.category_id);
-                    return itemCat && itemCat.name === activeCategory;
-                });
-            }
-
+            let filtered = activeCategory === 'Tutti' ? menuItems : menuItems.filter(i => activeCategory === 'Carta dei Vini' ? isWineCategory(i.category) : i.category === activeCategory);
+            
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="text-center py-20 text-stone-500 font-serif italic tracking-widest text-sm">Nessuna referenza in questa sezione.</div>`;
+                container.innerHTML = `<div class="text-center py-20 text-stone-500 font-serif italic tracking-widest text-sm">Nessun piatto disponibile in questa sezione.</div>`;
                 return;
             }
 
             const grouped = {};
-            filtered.forEach(item => {
-                if (!grouped[item.category_id]) grouped[item.category_id] = [];
-                grouped[item.category_id].push(item);
-            });
-
-            const sortedCategoryIds = Object.keys(grouped).sort((a, b) => {
-                const catA = dbCategories.find(c => c.id == a);
-                const catB = dbCategories.find(c => c.id == b);
-                return (catA ? catA.sort_order : 999) - (catB ? catB.sort_order : 999);
-            });
-
+            filtered.forEach(item => { if (!grouped[item.category]) grouped[item.category] = []; grouped[item.category].push(item); });
+            
             const currentTranslationList = translationsCache[currentLang] || [];
+            const sortedCategories = Object.keys(grouped).sort((a, b) => grouped[a][0].category_sort - grouped[b][0].category_sort);
 
-            sortedCategoryIds.forEach(catId => {
-                const categoryObj = dbCategories.find(c => c.id == catId);
-                if (!categoryObj) return;
-
-                const isWineGroup = isWineCategory(categoryObj.name);
+            sortedCategories.forEach(category => {
                 const section = document.createElement('section');
-                const catTitle = getTranslatedText(categoryObj.name, currentLang);
-
-                if (isWineGroup) {
-                    section.className = "my-5 border-b border-stone-900 pb-5 animate-fade-in";
+                const catTitle = translateText(category.toLowerCase(), currentLang) || category;
+                
+                if (isWineCategory(category)) {
+                    section.className = "my-6 border-b border-stone-900 pb-4 animate-fade-in";
                     section.innerHTML = `
-                        <details class="group" ${activeWineCategory ? 'open' : ''}>
-                            <summary class="font-serif text-2xl sm:text-3xl uppercase tracking-widest cursor-pointer text-[#d4af37] hover:text-white transition-colors flex justify-between items-center select-none py-3">
+                        <details class="group" ${activeCategory === category ? 'open' : ''}>
+                            <summary class="font-serif text-2xl uppercase tracking-widest cursor-pointer text-[#d4af37] hover:text-white transition-colors flex justify-between items-center select-none py-2">
                                 <span>${catTitle}</span>
-                                <i class="fa-solid fa-chevron-down text-sm text-stone-500 group-open:rotate-180 transition-transform"></i>
+                                <i class="fa-solid fa-chevron-down text-xs text-stone-500 group-open:rotate-180 transition-transform"></i>
                             </summary>
-                            <div class="mt-6 space-y-5" id="cat-items-${catId}"></div>
-                        </details>
-                    `;
+                            <div class="mt-6 space-y-8 pl-1 pr-1" id="cat-items-${category.replace(/[^a-zA-Z0-9]/g, '')}"></div>
+                        </details>`;
                 } else {
                     section.className = "space-y-10 animate-fade-in";
                     section.innerHTML = `
-                        <div class="text-center mb-8">
-                            <h2 class="font-serif text-2xl tracking-[0.25em] text-gold-500 font-light uppercase inline-block pb-3.5 border-b border-gold-500/10">${catTitle}</h2>
+                        <div class="text-center mb-10">
+                            <h2 class="font-serif text-xl tracking-[0.25em] text-gold-500 font-light uppercase inline-block pb-3 border-b border-gold-500/10">${catTitle}</h2>
                         </div>
-                        <div class="space-y-6" id="cat-items-${catId}"></div>
-                    `;
+                        <div class="space-y-10" id="cat-items-${category.replace(/[^a-zA-Z0-9]/g, '')}"></div>`;
                 }
 
                 container.appendChild(section);
-                const itemsContainer = document.getElementById(`cat-items-${catId}`);
+                const itemsContainer = document.getElementById(`cat-items-${category.replace(/[^a-zA-Z0-9]/g, '')}`);
+                grouped[category].sort((a, b) => a.sort_order - b.sort_order);
 
-                grouped[catId].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-
-                grouped[catId].forEach(item => {
+                grouped[category].forEach(item => {
                     const translation = currentTranslationList.find(t => t.id === item.id);
                     const nameToShow = translation ? translation.name : item.name;
+                    const descToShow = translation ? translation.description : item.description;
+                    const translatedAllergens = item.allergens.map(alg => translateText(alg, currentLang) || alg);
+
+                    const allergenLabel = translateText('allergeni', currentLang);
+                    const containsLabel = translateText('contiene', currentLang);
                     
-                    let descToShow = translation ? translation.description : item.description;
-                    if (!descToShow && item.description) descToShow = item.description;
-                    if (descToShow) {
-                        descToShow = getTranslatedText(descToShow, currentLang);
-                    }
-
-                    const allergenIds = dbProductAllergens
-                        .filter(pa => pa.product_id === item.id)
-                        .map(pa => pa.allergen_id);
-                    const allergenNames = dbAllergens
-                        .filter(al => allergenIds.includes(al.id))
-                        .map(al => getTranslatedText(al.name, currentLang));
-
-                    let allergenAccordionHtml = '';
-                    if (allergenNames.length > 0) {
-                        const allergenLabel = getTranslatedText("Allergeni", currentLang);
-                        const containsLabel = getTranslatedText("Contiene", currentLang);
-                        
-                        allergenAccordionHtml = `
+                    let allergenHtml = '';
+                    if (translatedAllergens.length > 0) {
+                        allergenHtml = `
                             <div class="mt-3 text-left">
-                                <button onclick="toggleAllergensDropdown(${item.id}, event)" class="inline-flex items-center gap-2 text-xs sm:text-sm uppercase tracking-wider font-bold text-stone-550 hover:text-gold-400 transition-colors focus:outline-none py-1.5 px-1 bg-white/[0.02] rounded-md border border-stone-900">
-                                    <i class="fa-solid fa-circle-exclamation text-amber-600/70 text-xs"></i>
+                                <button onclick="toggleAllergensDropdown(${item.id}, event)" class="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-stone-500 hover:text-gold-400 transition-colors focus:outline-none bg-stone-900/30 px-2 py-1 rounded border border-stone-800">
+                                    <i class="fa-solid fa-circle-exclamation text-amber-600/70"></i>
                                     <span>${allergenLabel}</span>
-                                    <i id="allergen-chevron-${item.id}" class="allergen-chevron-icon fa-solid fa-chevron-down text-[9px] transition-transform duration-300"></i>
+                                    <i id="allergen-chevron-${item.id}" class="allergen-chevron-icon fa-solid fa-chevron-down ml-1 text-[8px] transition-transform duration-300"></i>
                                 </button>
-                                <div id="allergen-panel-${item.id}" class="allergen-dropdown-panel hidden mt-2 pl-4 border-l-2 border-stone-800 py-1.5 transition-all">
-                                    <p class="text-xs sm:text-sm text-stone-400 font-sans leading-relaxed">
-                                        <span class="font-bold text-gold-500/80">${containsLabel}:</span> ${allergenNames.join(', ')}
+                                <div id="allergen-panel-${item.id}" class="allergen-dropdown-panel hidden mt-2 pl-3 border-l border-stone-800 py-1 transition-all">
+                                    <p class="text-[10px] text-stone-400 font-sans leading-relaxed">
+                                        <span class="font-bold text-gold-500/70">${containsLabel}:</span> ${translatedAllergens.join(', ')}
                                     </p>
                                 </div>
-                            </div>
-                        `;
+                            </div>`;
                     }
 
-                    const priceSuffix = item.price_per_person ? ` ${getTranslatedText("/ persona", currentLang)}` : '';
-                    const minPersonsHtml = item.min_persons 
-                        ? `<span class="inline-block bg-gold-500/10 text-gold-400 border border-gold-500/20 px-3 py-1 rounded text-xs tracking-wider uppercase font-bold mt-2.5">${getTranslatedText("Min. 2 persone", currentLang).replace('2', item.min_persons)}</span>`
-                        : '';
-
                     const itemDiv = document.createElement('div');
-                    itemDiv.className = "group py-6 px-5 hover:bg-white/[0.015] rounded-2xl transition-all duration-300 border border-transparent hover:border-stone-900";
+                    itemDiv.className = "group py-1";
                     itemDiv.innerHTML = `
                         <div class="flex justify-between items-baseline gap-4">
-                            <h3 class="font-serif text-stone-50 font-bold text-lg sm:text-2xl group-hover:text-gold-400 transition-colors duration-300 leading-snug">${nameToShow}</h3>
-                            <span class="h-px bg-stone-900 flex-1 mx-2 border-b border-dashed border-stone-800/50"></span>
-                            <span class="font-serif text-gold-400 font-bold tracking-wider text-lg sm:text-xl whitespace-nowrap">${item.price.toFixed(2)}€<span class="text-xs sm:text-sm text-stone-400 font-light lowercase">${priceSuffix}</span></span>
+                            <h3 class="font-serif text-base sm:text-lg font-medium text-stone-100 group-hover:text-gold-400 transition-colors duration-300">${nameToShow}</h3>
+                            <span class="h-px bg-stone-900 flex-1 mx-2 border-b border-dashed border-stone-800/65"></span>
+                            <span class="font-serif text-sm sm:text-base font-semibold text-gold-500 tracking-widest whitespace-nowrap">
+                                ${item.price.toFixed(2)} € ${item.price_per_person ? `<span class="text-[9px] font-sans text-stone-500 lowercase">${translateText('/ persona', currentLang)}</span>` : ''}
+                            </span>
                         </div>
-                        ${descToShow ? `<p class="text-sm sm:text-base text-stone-400 mt-3 font-light leading-relaxed max-w-2xl font-sans">${descToShow}</p>` : ''}
-                        <div class="flex flex-wrap gap-2 items-center">
-                            ${minPersonsHtml}
-                        </div>
-                        ${allergenAccordionHtml}
+                        ${descToShow ? `<p class="text-xs sm:text-sm text-stone-400 mt-2 font-light leading-relaxed max-w-2xl font-sans">${descToShow}</p>` : ''}
+                        ${item.min_persons ? `<div class="mt-2.5"><span class="bg-gold-500/10 text-gold-400 text-[9px] font-bold px-2 py-0.5 rounded border border-gold-500/10 uppercase tracking-wider font-sans">${translateText('min. 2 persone', currentLang).replace('2', item.min_persons)}</span></div>` : ''}
+                        ${allergenHtml}
                     `;
                     itemsContainer.appendChild(itemDiv);
                 });
@@ -609,9 +457,8 @@
 
         window.addEventListener('DOMContentLoaded', init);
         window.addEventListener('click', (e) => {
-            if (!e.target.closest('#lang-dropdown') && !e.target.closest('#active-flag')) {
-                document.getElementById('lang-dropdown').classList.add('hidden');
-            }
+            if (!e.target.closest('#lang-dropdown') && !e.target.onclick) document.getElementById('lang-dropdown').classList.add('hidden');
+            if (!e.target.closest('#wines-dropdown') && !e.target.closest('#category-scroll')) document.getElementById('wines-dropdown').classList.add('hidden');
         }, true);
     </script>
 </body>
