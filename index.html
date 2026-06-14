@@ -96,8 +96,7 @@
         const SUPABASE_URL = "https://cpmianmjcxhputneygsw.supabase.co";
         const SUPABASE_KEY = "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm";
         
-        // INSERISCI QUI LA TUA CHIAVE API GEMINI PER ABILITARE LE TRADUZIONI DINAMICHE
-        const apiKey = ""; 
+        // La chiave API Gemini NON va qui: è gestita in modo sicuro dalla funzione serverless /api/translate
         
         let supabaseClient;
         let menuItems = [];
@@ -232,14 +231,6 @@
                 return;
             }
 
-            if (!apiKey) {
-                console.warn("API Key Gemini non definita. Non è possibile tradurre i piatti dinamicamente.");
-                translationsCache[langCode] = menuItems.map(item => ({ id: item.id, name: item.name, description: item.description }));
-                renderCategories();
-                renderMenu();
-                return;
-            }
-
             document.getElementById('menu-container').classList.add('hidden');
             document.getElementById('shimmer-container').classList.remove('hidden');
 
@@ -265,52 +256,22 @@
 
         async function translateMenuWithGemini(targetLang) {
             if (menuItems.length === 0) return null;
-            const languageNames = { en: 'English', fr: 'French', de: 'German', es: 'Spanish', pt: 'Portuguese' };
-            const langName = languageNames[targetLang];
             const sourceData = menuItems.map(item => ({ id: item.id, name: item.name, description: item.description || '' }));
-            
-            const systemPrompt = `You are a professional culinary translator for a Michelin-star level Italian restaurant.
-Translate the provided JSON array of Italian dishes into elegant, natural ${langName}.
-CRITICAL RULES:
-1. Translate BOTH the dish names (name) and the descriptions (description). Do NOT leave the main dish name in Italian unless it has no equivalent.
-2. KEEP protected regional names, specific cheeses, and wines in original Italian (e.g., leave "Fiore Sardo", "Pecorino", "Barolo", "Fregula", "Guanciale" in Italian).
-3. The translation must sound appetizing and professional.
-4. Return ONLY a valid JSON object matching the provided schema, with no markdown outside the JSON.`;
-            
-            const userQuery = `Translate this JSON list to ${langName}:\n${JSON.stringify(sourceData)}`;
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-            const payload = {
-                contents: [{ parts: [{ text: userQuery }] }],
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: { 
-                        type: "OBJECT",
-                        properties: {
-                            translatedItems: {
-                                type: "ARRAY", 
-                                items: { 
-                                    type: "OBJECT", 
-                                    properties: { id: { type: "INTEGER" }, name: { type: "STRING" }, description: { type: "STRING" } }, 
-                                    required: ["id", "name", "description"] 
-                                } 
-                            }
-                        },
-                        required: ["translatedItems"]
-                    }
-                },
-                systemInstruction: { parts: [{ text: systemPrompt }] }
-            };
+            const response = await fetch('/api/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ targetLang, items: sourceData })
+            });
 
-            const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (!response.ok) throw new Error("Chiamata API fallita");
-            const result = await response.json();
-            const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (textResponse) {
-                const parsed = JSON.parse(textResponse);
-                return parsed.translatedItems || parsed;
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error("Errore API traduzione:", response.status, errText);
+                throw new Error("Chiamata API fallita: " + response.status);
             }
-            return null;
+
+            const result = await response.json();
+            return result.translatedItems || null;
         }
 
         function renderCategories() {
