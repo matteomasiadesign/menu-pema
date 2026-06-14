@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -34,29 +35,51 @@
 </head>
 <body class="bg-dark-950 text-stone-200 font-sans min-h-screen flex flex-col selection:bg-gold-500 selection:text-dark-950">
 
-    <!-- SCHERMATA LOGIN CON FUNZIONE OCCHIO ATTIVA -->
-    <div id="login-container" class="fixed inset-0 bg-dark-950 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
-        <div class="bg-dark-900 rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-stone-900 text-center">
-            <h1 class="font-serif text-3xl tracking-[0.2em] text-gold-500 font-light uppercase mb-1">P E M A</h1>
-            <p class="font-serif text-[9px] tracking-[0.35em] text-stone-500 uppercase mb-8 italic">Pannello Amministrativo</p>
+    <!-- SCHERMATA LOGIN -->
+    <div id="login-container" class="fixed inset-0 bg-dark-950 flex items-center justify-center p-4 z-50 transition-opacity duration-300 animate-fade-in">
+        <div class="bg-dark-900 rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-stone-900 text-center space-y-6">
+            <div class="flex flex-col items-center justify-center space-y-3">
+                <!-- Logo WebP su login -->
+                <img id="login-logo-img" src="logo.webp" alt="PEMA" class="h-20 sm:h-24 w-auto object-contain select-none" onerror="this.style.display='none'; document.getElementById('login-fallback-txt').classList.remove('hidden');">
+                <h1 id="login-fallback-txt" class="hidden font-serif text-3xl tracking-[0.2em] text-gold-500 font-light uppercase">P E M A</h1>
+                <p class="font-serif text-[9px] tracking-[0.35em] text-stone-500 uppercase italic">Pannello Amministrativo</p>
+            </div>
             
-            <form onsubmit="login(event)" class="space-y-5 text-left">
+            <form onsubmit="login(event)" class="space-y-6 text-left">
                 <div>
-                    <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2.5">Password di Accesso</label>
+                    <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2.5">Password di Accesso</label>
                     <div class="relative">
-                        <input type="password" id="admin-pass" placeholder="Password" class="w-full bg-[#eff4ff] border border-blue-100 p-4 pr-12 rounded-xl outline-none text-black text-sm focus:ring-2 focus:ring-black transition-colors">
+                        <input type="password" id="admin-pass" placeholder="Password" class="w-full bg-[#eff4ff] border border-blue-100 p-4 pr-12 rounded-xl outline-none text-black text-base focus:ring-2 focus:ring-black transition-colors">
                         <button type="button" onclick="togglePassword()" class="absolute right-0 top-0 h-full px-4 text-stone-400 hover:text-black transition-colors flex items-center justify-center">
                             <i id="eye-icon" class="fa-solid fa-eye text-lg"></i>
                         </button>
                     </div>
                 </div>
-                <div id="login-error" class="hidden text-xs text-rose-400 font-medium bg-rose-950/20 p-3.5 rounded-xl border border-rose-900/30 flex items-center gap-2">
+                <div id="login-error" class="text-xs text-rose-400 font-medium bg-rose-950/20 p-3.5 rounded-xl border border-rose-900/30 hidden flex items-center gap-2">
                     <i class="fa-solid fa-circle-exclamation"></i> Password non valida o database offline.
                 </div>
-                <button type="submit" id="login-btn" class="w-full bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-all cursor-pointer text-xs tracking-widest uppercase flex items-center justify-center gap-2 min-h-[48px]">
+                <button type="submit" id="login-btn" class="w-full bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-all cursor-pointer text-sm tracking-widest uppercase flex items-center justify-center gap-2 min-h-[48px]">
                     <span>Entra nel Gestionale</span>
                 </button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modale d'aiuto SQL d'emergenza se manca la colonna 'available' -->
+    <div id="sql-notice-modal" class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-dark-900 rounded-2xl max-w-md w-full p-8 border border-stone-800 text-center">
+            <i class="fa-solid fa-database text-3xl text-gold-500 mb-4 animate-bounce"></i>
+            <h3 class="font-serif text-2xl font-bold text-stone-100 uppercase tracking-widest mb-2">Abilita Disponibilità</h3>
+            <p class="text-stone-400 text-xs leading-relaxed font-light mb-6">
+                Per salvare e gestire lo stato Visibile/Nascosto, è necessario aggiungere la colonna <code class="bg-black text-gold-400 px-1.5 py-0.5 rounded text-[10px]">available</code> alla tabella products.<br>Esegui questa riga all'interno dell'**SQL Editor** di Supabase:
+            </p>
+            <div class="bg-black/80 rounded-xl p-3 text-left font-mono text-[10px] text-stone-300 relative border border-stone-850 mb-6">
+                <span class="block select-all" id="sql-code-text">ALTER TABLE products ADD COLUMN available BOOLEAN DEFAULT true;</span>
+                <button onclick="copySqlCode()" class="absolute right-2.5 top-2.5 bg-stone-900 hover:bg-stone-800 text-gold-500 border border-stone-850 p-1 px-2 rounded font-sans text-[9px] uppercase tracking-widest transition-all">Copia</button>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="closeSqlModal()" class="flex-1 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-3 rounded-xl transition-all text-xs tracking-wider uppercase cursor-pointer">Chiudi</button>
+            </div>
         </div>
     </div>
 
@@ -66,7 +89,7 @@
         <span id="toast-message" class="text-xs font-semibold uppercase tracking-widest"></span>
     </div>
 
-    <!-- Modale di Conferma Eliminazione -->
+    <!-- Modale Eliminazione -->
     <div id="confirm-delete-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-dark-900 rounded-2xl max-w-sm w-full p-8 border border-stone-900 transform scale-95 opacity-0 transition-all duration-300" id="delete-modal-content">
             <h3 class="font-serif text-xl font-bold text-stone-100 uppercase tracking-widest">Eliminare questo piatto?</h3>
@@ -82,10 +105,16 @@
     <div id="dashboard" class="hidden flex-1 flex flex-col">
         <header class="bg-dark-900 border-b border-stone-900 py-6 px-4 sticky top-0 z-40">
             <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="text-center sm:text-left">
-                    <h1 class="font-serif text-2xl tracking-[0.2em] text-gold-500 font-light uppercase">PEMA • Admin</h1>
-                    <p class="text-stone-500 text-[9px] uppercase tracking-[0.25em] mt-0.5">Gestione e Configurazione Piatti</p>
+                
+                <div class="flex items-center gap-4 justify-center sm:justify-start">
+                    <!-- Logo WebP sulla Dashboard -->
+                    <img id="dash-logo-img" src="logo.webp" alt="PEMA" class="h-10 sm:h-12 w-auto object-contain select-none" onerror="this.style.display='none'; document.getElementById('dash-fallback-txt').classList.remove('hidden');">
+                    <div>
+                        <h1 id="dash-fallback-txt" class="hidden font-serif text-xl sm:text-2xl tracking-[0.2em] text-gold-500 font-light uppercase select-none">PEMA</h1>
+                        <p class="text-stone-500 text-[10px] uppercase tracking-[0.25em] mt-0.5">Gestione e Configurazione Piatti</p>
+                    </div>
                 </div>
+                
                 <div class="flex items-center gap-4">
                     <span class="text-[9px] bg-gold-500/10 text-gold-400 border border-gold-500/20 px-3 py-1.5 rounded-md font-mono uppercase font-semibold">Supabase Live</span>
                     <button onclick="logout()" class="text-stone-400 hover:text-stone-100 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer min-h-[44px]">
@@ -95,11 +124,11 @@
             </div>
         </header>
 
-        <!-- SELETTORE TAB DI CONFIGURAZIONE -->
+        <!-- Selettore Tab -->
         <div class="max-w-6xl mx-auto px-4 mt-8 w-full">
             <div class="flex border-b border-stone-900">
-                <button onclick="switchTab('gestione')" id="tab-gestione" class="px-6 py-3 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all">Gestione Piatti</button>
-                <button onclick="switchTab('ordinamento')" id="tab-ordinamento" class="px-6 py-3 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2">
+                <button onclick="switchTab('gestione')" id="tab-gestione" class="px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all">Gestione Piatti</button>
+                <button onclick="switchTab('ordinamento')" id="tab-ordinamento" class="px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2">
                     <i class="fa-solid fa-arrows-up-down text-xs"></i> Ordinamento Portate
                 </button>
             </div>
@@ -108,76 +137,79 @@
         <main class="max-w-6xl mx-auto px-4 py-8 flex-1 w-full">
             
             <!-- SEZIONE 1: TABELLA DI GESTIONE & AGGIUNTA -->
-            <div id="section-gestione" class="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
-                <!-- Colonna Form (Aggiungi/Modifica) con scroll di sicurezza interno -->
-                <div class="lg:col-span-4">
-                    <div class="bg-dark-900 p-6 rounded-2xl border border-stone-900 lg:sticky lg:top-24 max-h-none lg:max-h-[calc(100vh-140px)] overflow-y-visible lg:overflow-y-auto no-scrollbar">
+            <div id="section-gestione" class="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full items-start">
+                
+                <!-- Colonna Form (Aggiungi/Modifica) -->
+                <div class="lg:col-span-4 lg:sticky lg:top-24 max-h-none lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto no-scrollbar w-full">
+                    <div class="bg-dark-900 p-6 rounded-2xl border border-stone-900">
                         <h2 id="form-title" class="font-serif text-lg font-bold text-gold-500 mb-6 uppercase tracking-widest flex items-center gap-2">
                             <i class="fa-solid fa-plus-circle"></i> Aggiungi Prodotto
                         </h2>
-                        <form id="product-form" onsubmit="saveProduct(event)" class="space-y-4">
+                        <form id="product-form" onsubmit="saveProduct(event)" class="space-y-5">
                             <input type="hidden" id="prod-id">
                             <div>
-                                <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Nome Piatto *</label>
-                                <input type="text" id="prod-name" required placeholder="es. Degustazione di mare..." class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
+                                <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Nome Piatto *</label>
+                                <input type="text" id="prod-name" required placeholder="es. Degustazione di mare..." class="w-full text-base p-4 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Categoria *</label>
-                                    <select id="prod-category" required class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans cursor-pointer">
-                                        <!-- Caricate dinamicamente -->
+                                    <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Categoria *</label>
+                                    <select id="prod-category" required class="w-full text-base p-4 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans cursor-pointer">
+                                        <!-- Popolato dinamicamente -->
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Prezzo (€) *</label>
-                                    <input type="number" id="prod-price" step="0.01" required placeholder="0.00" class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
+                                    <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Prezzo (€) *</label>
+                                    <input type="number" id="prod-price" step="0.01" required placeholder="0.00" class="w-full text-base p-4 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Minimo Persone</label>
-                                    <input type="number" id="prod-min-persons" placeholder="es. 2" class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
+                                    <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Minimo Persone</label>
+                                    <input type="number" id="prod-min-persons" placeholder="es. 2" class="w-full text-base p-4 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
                                 </div>
                                 <div class="flex items-center gap-2.5 pt-6">
-                                    <input type="checkbox" id="prod-per-person" class="w-5 h-5 accent-gold-500 bg-dark-850 border-stone-850 rounded-sm">
-                                    <label for="prod-per-person" class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Prezzo a Persona</label>
+                                    <input type="checkbox" id="prod-price-per-person" class="w-6 h-6 accent-gold-500 bg-dark-850 border-stone-850 rounded-sm cursor-pointer">
+                                    <label for="prod-price-per-person" class="text-[10px] sm:text-xs font-bold text-stone-400 uppercase tracking-widest cursor-pointer select-none">Prezzo a Persona</label>
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Descrizione / Ingredienti</label>
-                                <textarea id="prod-description" rows="3" placeholder="Composizione del piatto..." class="w-full text-sm p-3.5 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all resize-none font-sans"></textarea>
+                                <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Descrizione / Ingredienti</label>
+                                <textarea id="prod-description" rows="3" placeholder="Composizione del piatto..." class="w-full text-base p-4 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all resize-none font-sans"></textarea>
                             </div>
-                            <!-- GRIGLIA ALLERGENI INTERATTIVA CON SCROLL INTERNO -->
+                            
+                            <!-- Griglia Allergeni -->
                             <div>
-                                <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2">Allergeni Presenti</label>
-                                <div id="allergens-grid" class="grid grid-cols-2 gap-2 bg-dark-850 border border-stone-850 p-3.5 rounded-xl max-h-32 overflow-y-auto no-scrollbar">
-                                    <!-- Popolato dinamicamente -->
+                                <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Allergeni Presenti</label>
+                                <div id="allergens-grid-container" class="max-h-36 overflow-y-auto bg-dark-850 border border-stone-850 rounded-xl p-3.5 grid grid-cols-2 gap-3 no-scrollbar">
+                                    <!-- Popolati dinamicamente -->
                                 </div>
                             </div>
+
                             <div class="flex gap-2 pt-4 border-t border-stone-900">
-                                <button type="submit" class="flex-1 bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-colors text-xs tracking-widest uppercase cursor-pointer min-h-[44px]">Salva Piatto</button>
-                                <button type="button" id="cancel-btn" onclick="resetForm()" class="hidden bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-4 px-4 rounded-xl transition-colors text-xs tracking-widest uppercase cursor-pointer min-h-[44px]">Annulla</button>
+                                <button type="submit" class="flex-1 bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-colors text-xs tracking-widest uppercase cursor-pointer min-h-[48px]">Salva Piatto</button>
+                                <button type="button" id="cancel-btn" onclick="resetForm()" class="hidden bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-4 px-4 rounded-xl transition-colors text-xs tracking-widest uppercase cursor-pointer min-h-[48px]">Annulla</button>
                             </div>
                         </form>
                     </div>
                 </div>
 
-                <!-- Colonna Tabella/Lista dei Piatti -->
-                <div class="lg:col-span-8 space-y-4">
+                <!-- Tabella su Desktop, Lista Cards su Mobile -->
+                <div class="lg:col-span-8 space-y-4 w-full">
                     <div class="flex bg-dark-900 px-5 py-4 border border-stone-900 rounded-2xl items-center gap-3.5 shadow-lg">
-                        <i class="fa-solid fa-magnifying-glass text-stone-500"></i>
-                        <input type="text" id="search-input" oninput="filterMenu()" placeholder="Cerca piatti..." class="bg-transparent w-full border-none focus:outline-none text-sm text-stone-100 font-sans">
+                        <i class="fa-solid fa-magnifying-glass text-stone-500 text-base"></i>
+                        <input type="text" id="search-input" oninput="filterMenu()" placeholder="Cerca piatti..." class="bg-transparent w-full border-none focus:outline-none text-base text-stone-100 font-sans">
                     </div>
 
-                    <!-- VISTA DESKTOP (Tabella ordinata) -->
+                    <!-- Layout Tabella Desktop -->
                     <div class="hidden md:block bg-dark-900 rounded-2xl border border-stone-900 overflow-hidden shadow-2xl">
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse min-w-[500px]">
+                            <table class="w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="border-b border-stone-900 text-[10px] font-bold text-stone-500 uppercase tracking-widest bg-black/40">
+                                    <tr class="border-b border-stone-900 text-xs font-bold text-stone-500 uppercase tracking-widest bg-black/40">
                                         <th class="p-4">Piatto</th>
                                         <th class="p-4">Categoria</th>
-                                        <th class="p-4">Visibilità</th>
+                                        <th class="p-4 text-center">Visibilità</th>
                                         <th class="p-4">Prezzo</th>
                                         <th class="p-4 text-right">Azioni</th>
                                     </tr>
@@ -187,10 +219,8 @@
                         </div>
                     </div>
 
-                    <!-- VISTA MOBILE (Schede ottimizzate per tocco) -->
-                    <div id="cards-container" class="grid grid-cols-1 gap-4 md:hidden">
-                        <!-- Popolato dinamicamente da JS per smartphone -->
-                    </div>
+                    <!-- Layout Cards Mobile -->
+                    <div id="cards-mobile-list" class="block md:hidden space-y-4"></div>
                 </div>
             </div>
 
@@ -198,19 +228,14 @@
             <div id="section-ordinamento" class="hidden bg-dark-900 rounded-2xl border border-stone-900 p-6 md:p-8 max-w-3xl mx-auto shadow-2xl">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-850 pb-6 mb-6">
                     <div>
-                        <h2 class="font-serif text-xl text-gold-500 uppercase tracking-widest">Ordinamento Sequenza Piatti</h2>
-                        <p class="text-stone-400 text-xs mt-1">Seleziona la categoria ed ordina l'apparizione dei piatti sul menu del menu del cliente usando le frecce.</p>
+                        <h2 class="font-serif text-2xl text-gold-500 uppercase tracking-widest">Ordinamento Sequenza Piatti</h2>
+                        <p class="text-stone-400 text-sm mt-1">Sposta i piatti su e giù con le frecce per riordinare la visualizzazione.</p>
                     </div>
-                    <!-- Select Categoria Dinamico -->
-                    <select id="reorder-cat-select" onchange="loadReorderCategory()" class="bg-dark-850 border border-stone-800 p-3.5 rounded-xl text-stone-100 text-xs font-bold uppercase tracking-wider focus:border-gold-500 outline-none cursor-pointer">
+                    <select id="reorder-cat-select" onchange="loadReorderCategory()" class="bg-dark-850 border border-stone-800 p-4 rounded-xl text-stone-100 text-base font-bold uppercase tracking-wider focus:border-gold-500 outline-none cursor-pointer w-full sm:w-auto">
                         <!-- Popolato dinamicamente -->
                     </select>
                 </div>
-
-                <!-- Elenco Piatti Ordinabile -->
-                <div id="reorder-list-container" class="space-y-3">
-                    <!-- Elementi renderizzati dinamicamente -->
-                </div>
+                <div id="reorder-list-container" class="space-y-3"></div>
             </div>
 
         </main>
@@ -222,8 +247,9 @@
         
         let supabaseClient;
         let menuItems = [];
-        let categoriesList = [];
-        let allergensList = [];
+        let categories = [];
+        let allergens = [];
+        let productAllergens = [];
         let idToDelete = null;
 
         try {
@@ -232,7 +258,6 @@
             console.error("Errore init Supabase.");
         }
 
-        // Commutatore Tab UI
         function switchTab(tab) {
             const tabGestione = document.getElementById('tab-gestione');
             const tabOrdinamento = document.getElementById('tab-ordinamento');
@@ -240,53 +265,40 @@
             const sectionOrdinamento = document.getElementById('section-ordinamento');
 
             if (tab === 'gestione') {
-                tabGestione.className = "px-6 py-3 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all";
-                tabOrdinamento.className = "px-6 py-3 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2";
+                tabGestione.className = "px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all";
+                tabOrdinamento.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2";
                 sectionGestione.classList.remove('hidden');
                 sectionOrdinamento.classList.add('hidden');
             } else {
-                tabGestione.className = "px-6 py-3 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all";
-                tabOrdinamento.className = "px-6 py-3 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all flex items-center gap-2";
+                tabGestione.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all";
+                tabOrdinamento.className = "px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all flex items-center gap-2";
                 sectionGestione.classList.add('hidden');
                 sectionOrdinamento.classList.remove('hidden');
                 populateReorderCategories();
             }
         }
 
-        // Funzione per compilare il selettore delle categorie per il riordinamento
         function populateReorderCategories() {
             const select = document.getElementById('reorder-cat-select');
             select.innerHTML = '';
-            
-            const uniqueCats = [...new Set(menuItems.map(i => i.category))];
-            if (uniqueCats.length === 0) {
-                select.innerHTML = '<option value="">Nessuna Categoria</option>';
-                return;
-            }
-
-            uniqueCats.forEach(cat => {
-                select.innerHTML += `<option value="${cat}">${cat.toUpperCase()}</option>`;
+            if (categories.length === 0) return;
+            categories.forEach(cat => {
+                select.innerHTML += `<option value="${cat.id}">${cat.name.toUpperCase()}</option>`;
             });
             loadReorderCategory();
         }
 
-        // Render dell'elenco ordinabile
         function loadReorderCategory() {
             const selectVal = document.getElementById('reorder-cat-select').value;
             const container = document.getElementById('reorder-list-container');
             container.innerHTML = '';
-
             if (!selectVal) return;
 
-            const categoryItems = menuItems.filter(i => i.category === selectVal);
-            categoryItems.sort((a, b) => {
-                const posA = (a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : 99999;
-                const posB = (b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : 99999;
-                return posA - posB;
-            });
+            const categoryItems = menuItems.filter(i => i.category_id == selectVal);
+            categoryItems.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
             if (categoryItems.length === 0) {
-                container.innerHTML = '<div class="text-center py-10 text-stone-500 italic">Nessun piatto in questa categoria.</div>';
+                container.innerHTML = '<div class="text-center py-10 text-stone-500 italic text-sm">Nessun piatto in questa categoria.</div>';
                 return;
             }
 
@@ -298,18 +310,18 @@
                 div.className = "bg-dark-850 p-4 rounded-xl border border-stone-850 flex justify-between items-center gap-4 hover:border-gold-500/30 transition-colors";
                 div.innerHTML = `
                     <div class="flex items-center gap-4">
-                        <span class="font-serif font-bold text-gold-500/80 text-sm">#${index + 1}</span>
+                        <span class="font-serif font-bold text-gold-500/80 text-base">#${index + 1}</span>
                         <div>
-                            <h4 class="font-serif font-bold text-stone-100">${item.name}</h4>
-                            <p class="text-[10px] text-stone-500 font-mono mt-0.5">Pos: ${item.sort_order || 0}</p>
+                            <h4 class="font-serif font-bold text-stone-100 text-base">${item.name}</h4>
+                            <p class="text-xs text-stone-500 font-mono mt-0.5">Ordinamento: ${item.sort_order || 0}</p>
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="swapOrder(${index}, ${index - 1}, '${selectVal}')" ${isFirst ? 'disabled' : ''} class="w-9 h-9 rounded-lg bg-dark-900 border border-stone-800 text-stone-300 hover:text-gold-500 disabled:opacity-30 disabled:hover:text-stone-300 flex items-center justify-center transition-all cursor-pointer">
-                            <i class="fa-solid fa-arrow-up text-xs"></i>
+                        <button onclick="swapOrder(${index}, ${index - 1}, ${selectVal})" ${isFirst ? 'disabled' : ''} class="w-11 h-11 rounded-lg bg-dark-900 border border-stone-800 text-stone-300 hover:text-gold-500 disabled:opacity-30 flex items-center justify-center transition-all cursor-pointer">
+                            <i class="fa-solid fa-arrow-up text-sm"></i>
                         </button>
-                        <button onclick="swapOrder(${index}, ${index + 1}, '${selectVal}')" ${isLast ? 'disabled' : ''} class="w-9 h-9 rounded-lg bg-dark-900 border border-stone-800 text-stone-300 hover:text-gold-500 disabled:opacity-30 disabled:hover:text-stone-300 flex items-center justify-center transition-all cursor-pointer">
-                            <i class="fa-solid fa-arrow-down text-xs"></i>
+                        <button onclick="swapOrder(${index}, ${index + 1}, ${selectVal})" ${isLast ? 'disabled' : ''} class="w-11 h-11 rounded-lg bg-dark-900 border border-stone-800 text-stone-300 hover:text-gold-500 disabled:opacity-30 flex items-center justify-center transition-all cursor-pointer">
+                            <i class="fa-solid fa-arrow-down text-sm"></i>
                         </button>
                     </div>
                 `;
@@ -317,35 +329,25 @@
             });
         }
 
-        // Logica di swap sequenza mappando sulla colonna sort_order
-        async function swapOrder(currIdx, targetIdx, categoryName) {
-            const categoryItems = menuItems.filter(i => i.category === categoryName);
-            categoryItems.sort((a, b) => {
-                const posA = (a.sort_order !== undefined && a.sort_order !== null) ? a.sort_order : 99999;
-                const posB = (b.sort_order !== undefined && b.sort_order !== null) ? b.sort_order : 99999;
-                return posA - posB;
-            });
+        async function swapOrder(currIdx, targetIdx, catId) {
+            const categoryItems = menuItems.filter(i => i.category_id == catId);
+            categoryItems.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
             const currentItem = categoryItems[currIdx];
             const targetItem = categoryItems[targetIdx];
 
-            const newPosCurrent = targetIdx;
-            const newPosTarget = currIdx;
+            const tempOrder = currentItem.sort_order;
+            currentItem.sort_order = targetItem.sort_order;
+            targetItem.sort_order = tempOrder;
 
-            currentItem.sort_order = newPosCurrent;
-            targetItem.sort_order = newPosTarget;
+            loadReorderCategory(); 
 
-            loadReorderCategory();
-            
             if (!supabaseClient) return;
+            const { error: err1 } = await supabaseClient.from('products').update({ sort_order: currentItem.sort_order }).eq('id', currentItem.id);
+            const { error: err2 } = await supabaseClient.from('products').update({ sort_order: targetItem.sort_order }).eq('id', targetItem.id);
 
-            const updateCurrent = supabaseClient.from('products').update({ sort_order: newPosCurrent }).eq('id', currentItem.id);
-            const updateTarget = supabaseClient.from('products').update({ sort_order: newPosTarget }).eq('id', targetItem.id);
-
-            const [res1, res2] = await Promise.all([updateCurrent, updateTarget]);
-
-            if (res1.error || res2.error) {
-                showToast("Errore durante il salvataggio della sequenza", false);
+            if (err1 || err2) {
+                showToast("Errore di riordinamento nel database", false);
                 fetchMenu();
             } else {
                 showToast("Sequenza aggiornata con successo!");
@@ -353,60 +355,49 @@
             }
         }
 
-        // Funzione Reale Mostra/Nascondi Password
+        function showSqlNoticeModal() { document.getElementById('sql-notice-modal').classList.remove('hidden'); }
+        function closeSqlModal() { document.getElementById('sql-notice-modal').classList.add('hidden'); }
+        function copySqlCode() {
+            const code = document.getElementById('sql-code-text').innerText;
+            navigator.clipboard.writeText(code).then(() => { showToast("Codice copiato!"); });
+        }
+
         function togglePassword() {
             const passInput = document.getElementById('admin-pass');
             const eyeIcon = document.getElementById('eye-icon');
-            
             if (passInput.type === 'password') {
                 passInput.type = 'text';
-                eyeIcon.classList.remove('fa-eye');
-                eyeIcon.classList.add('fa-eye-slash');
+                eyeIcon.className = 'fa-solid fa-eye-slash text-lg';
             } else {
                 passInput.type = 'password';
-                eyeIcon.classList.remove('fa-eye-slash');
-                eyeIcon.classList.add('fa-eye');
+                eyeIcon.className = 'fa-solid fa-eye text-lg';
             }
         }
 
-        // Login con verifica di sicurezza crittografata MD5
         async function login(e) {
-            if (e && e.preventDefault) e.preventDefault(); 
+            e.preventDefault();
             const inputPass = document.getElementById('admin-pass').value;
             const errorLabel = document.getElementById('login-error');
             const loginBtn = document.getElementById('login-btn');
 
             if (!inputPass) return;
-
-            loginBtn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Verifica in corso...</span>';
+            loginBtn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Verifica...</span>';
             errorLabel.classList.add('hidden');
 
-            if (typeof md5 === 'undefined') {
-                console.error("Errore: Libreria blueimp-md5 non disponibile.");
-                errorLabel.innerText = "Errore di sicurezza: libreria di crittografia non disponibile.";
-                errorLabel.classList.remove('hidden');
-                loginBtn.innerHTML = '<span>Entra nel Gestionale</span>';
-                return;
-            }
-
             try {
-                if (!supabaseClient) throw new Error("Connessione Supabase assente.");
-
+                if (!supabaseClient) throw new Error("Supabase non disponibile.");
                 const hashedInput = md5(inputPass);
+                
                 const { data, error } = await supabaseClient
                     .from('gestione_accessi')
                     .select('password_hash')
                     .eq('id', 1)
                     .single();
 
-                if (error || !data || data.password_hash !== hashedInput) {
-                    throw new Error("Credenziali errate.");
-                }
+                if (error || !data || data.password_hash !== hashedInput) throw new Error();
 
                 unlockDashboard();
             } catch (err) {
-                console.error("Errore durante il Login:", err);
-                errorLabel.innerText = "Password non valida o database offline.";
                 errorLabel.classList.remove('hidden');
                 loginBtn.innerHTML = '<span>Entra nel Gestionale</span>';
                 document.getElementById('admin-pass').value = '';
@@ -414,27 +405,16 @@
         }
 
         function unlockDashboard() {
-            document.getElementById('login-error').classList.add('hidden');
             document.getElementById('login-container').classList.add('opacity-0');
-            document.getElementById('login-container').classList.add('pointer-events-none');
-            
             setTimeout(() => {
                 document.getElementById('login-container').classList.add('hidden');
                 document.getElementById('dashboard').classList.remove('hidden');
             }, 300);
-            
-            loadMetadataAndMenu();
+            fetchInitialData();
         }
 
         function logout() {
-            const passInput = document.getElementById('admin-pass');
-            const eyeIcon = document.getElementById('eye-icon');
-            
-            passInput.value = '';
-            passInput.type = 'password';
-            eyeIcon.className = 'fa-solid fa-eye text-lg';
-            
-            document.getElementById('login-container').classList.remove('pointer-events-none');
+            document.getElementById('admin-pass').value = '';
             document.getElementById('login-container').classList.remove('hidden');
             setTimeout(() => { document.getElementById('login-container').classList.remove('opacity-0'); }, 50);
             document.getElementById('dashboard').classList.add('hidden');
@@ -450,177 +430,151 @@
             }, 3000);
         }
 
-        // Recupero iniziale di categorie, allergeni e prodotti (Flusso relazionale)
-        async function loadMetadataAndMenu() {
+        async function fetchInitialData() {
             if (!supabaseClient) return;
             try {
-                const [catRes, allRes] = await Promise.all([
+                const [cats, algs, mItems, pAlgs] = await Promise.all([
                     supabaseClient.from('categories').select('*').order('sort_order', { ascending: true }),
-                    supabaseClient.from('allergens').select('*').order('name', { ascending: true })
+                    supabaseClient.from('allergens').select('*'),
+                    supabaseClient.from('products').select('*').order('sort_order', { ascending: true }),
+                    supabaseClient.from('product_allergens').select('*')
                 ]);
 
-                if (!catRes.error) {
-                    categoriesList = catRes.data || [];
-                    populateCategoryDropdown();
-                }
-                if (!allRes.error) {
-                    allergensList = allRes.data || [];
-                    populateAllergensGrid();
-                }
+                categories = cats.data || [];
+                allergens = algs.data || [];
+                menuItems = mItems.data || [];
+                productAllergens = pAlgs.data || [];
 
-                await fetchMenu();
+                populateCategoryDropdowns();
+                renderAllergensCheckboxes();
+                renderTable(menuItems);
             } catch (e) {
-                console.error("Errore nel caricamento dei metadati relazionali:", e);
+                console.error(e);
             }
-        }
-
-        function populateCategoryDropdown() {
-            const select = document.getElementById('prod-category');
-            select.innerHTML = '';
-            categoriesList.forEach(cat => {
-                select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
-            });
-        }
-
-        function populateAllergensGrid() {
-            const grid = document.getElementById('allergens-grid');
-            grid.innerHTML = '';
-            allergensList.forEach(allergen => {
-                grid.innerHTML += `
-                    <label class="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-dark-800 rounded transition-colors text-xs">
-                        <input type="checkbox" name="allergens" value="${allergen.id}" class="w-4 h-4 accent-gold-500 rounded-sm">
-                        <span>${allergen.name}</span>
-                    </label>
-                `;
-            });
         }
 
         async function fetchMenu() {
             if (!supabaseClient) return;
-            try {
-                const { data, error } = await supabaseClient.from('products').select(`
-                    *,
-                    product_allergens (
-                        allergen_id,
-                        allergens (id, name)
-                    )
-                `).order('sort_order', { ascending: true });
-
-                if (!error && data) {
-                    menuItems = data.map(item => {
-                        const matchedCat = categoriesList.find(c => c.id === item.category_id);
-                        return {
-                            ...item,
-                            category: matchedCat ? matchedCat.name : 'Altro',
-                            available: item.available !== false, // Failsafe fallback
-                            allergens: item.product_allergens ? item.product_allergens.map(pa => pa.allergen_id) : []
-                        };
-                    });
-                } else {
-                    menuItems = [];
-                }
-                renderTable(menuItems);
-                if (!document.getElementById('section-ordinamento').classList.contains('hidden')) {
-                    loadReorderCategory();
-                }
-            } catch (e) {
-                console.error(e);
-                menuItems = [];
-                renderTable(menuItems);
-            }
+            const { data } = await supabaseClient.from('products').select('*').order('sort_order', { ascending: true });
+            if (data) menuItems = data;
+            renderTable(menuItems);
         }
 
-        // Funzione rapida per attivare/disattivare la visibilità (interruttore ad un click)
-        async function toggleProductVisibility(productId, currentStatus) {
-            if (!supabaseClient) return;
-            const targetStatus = !currentStatus;
+        function populateCategoryDropdowns() {
+            const selectForm = document.getElementById('prod-category');
+            selectForm.innerHTML = '';
+            categories.forEach(cat => {
+                selectForm.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+            });
+        }
 
-            // Aggiorna istantaneamente l'array locale per feedback visivo rapido (Optimistic UI)
+        function renderAllergensCheckboxes() {
+            const container = document.getElementById('allergens-grid-container');
+            container.innerHTML = '';
+            allergens.forEach(al => {
+                container.innerHTML += `
+                    <div class="flex items-center gap-3 py-1">
+                        <input type="checkbox" id="al-${al.id}" value="${al.id}" class="allergen-chk w-5 h-5 accent-gold-500 bg-dark-800 border-stone-700 rounded cursor-pointer">
+                        <label for="al-${al.id}" class="text-xs sm:text-sm text-stone-300 select-none cursor-pointer font-medium">${al.name}</label>
+                    </div>
+                `;
+            });
+        }
+
+        async function toggleAvailability(productId, currentVal) {
+            const newVal = !currentVal;
             const item = menuItems.find(i => i.id === productId);
-            if (item) item.available = targetStatus;
-            renderTable(menuItems);
+            if (item) item.available = newVal;
+            renderTable(menuItems); 
 
-            const { error } = await supabaseClient.from('products').update({ available: targetStatus }).eq('id', productId);
+            if (!supabaseClient) return;
+            const { error } = await supabaseClient.from('products').update({ available: newVal }).eq('id', productId);
+            
             if (error) {
-                showToast("Errore durante l'aggiornamento visibilità: " + error.message, false);
-                fetchMenu(); // Esegue il rollback
+                if (error.code === '42703' || error.message.includes('available')) {
+                    showSqlNoticeModal();
+                } else {
+                    showToast("Errore durante l'aggiornamento dello stato", false);
+                }
+                fetchMenu(); 
             } else {
-                showToast(targetStatus ? "Piatto reso visibile sul menu" : "Piatto nascosto ai clienti");
+                showToast(newVal ? "Piatto visibile sul menu!" : "Piatto nascosto con successo");
             }
         }
 
         function renderTable(items) {
             const tbody = document.getElementById('table-body');
-            const cardsContainer = document.getElementById('cards-container');
-            
+            const mobileList = document.getElementById('cards-mobile-list');
             tbody.innerHTML = '';
-            cardsContainer.innerHTML = '';
+            mobileList.innerHTML = '';
 
             if (items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-stone-500 font-serif italic tracking-widest text-xs">Nessun piatto trovato nel database.</td></tr>`;
-                cardsContainer.innerHTML = `<div class="p-8 text-center text-stone-500 font-serif italic tracking-widest text-xs">Nessun piatto trovato nel database.</div>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-stone-500 italic text-sm">Nessun prodotto trovato.</td></tr>`;
+                mobileList.innerHTML = `<div class="p-8 text-center text-stone-500 italic text-sm">Nessun prodotto trovato.</div>`;
                 return;
             }
 
             items.forEach(item => {
-                // 1. Renderizzare la riga della tabella (Vista Desktop)
+                const catName = categories.find(c => c.id === item.category_id)?.name || 'Nessuna';
+                const avLabel = item.available ? 'Visibile' : 'Nascosto';
+                const avClass = item.available ? 'bg-gold-500/10 text-gold-400 border border-gold-500/20' : 'bg-stone-800 text-stone-500';
+
+                // Desktop row
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-stone-900/40 transition-colors";
                 tr.innerHTML = `
                     <td class="p-4">
-                        <div class="font-serif font-bold text-stone-100 text-base group-hover:text-gold-400 transition-colors">${item.name}</div>
-                        ${item.description ? `<div class="text-xs text-stone-500 max-w-xs truncate mt-1 font-sans font-light">${item.description}</div>` : ''}
+                        <div class="font-serif font-bold text-stone-100 text-base">${item.name}</div>
+                        ${item.description ? `<div class="text-xs text-stone-500 max-w-xs truncate mt-1">${item.description}</div>` : ''}
                     </td>
-                    <td class="p-4"><span class="bg-stone-850 text-stone-300 text-[10px] font-semibold px-2.5 py-1 rounded-md uppercase tracking-wider font-sans">${item.category}</span></td>
-                    <td class="p-4">
-                        <button onclick="toggleProductVisibility(${item.id}, ${item.available})" class="cursor-pointer">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-bold tracking-widest uppercase transition-all ${item.available ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/25 hover:bg-rose-500/20'}">
-                                <span class="h-1.5 w-1.5 rounded-full ${item.available ? 'bg-emerald-500' : 'bg-rose-500'}"></span>
-                                ${item.available ? 'Visibile' : 'Nascosto'}
-                            </span>
+                    <td class="p-4"><span class="bg-stone-850 text-stone-300 text-xs font-semibold px-2.5 py-1 rounded-md uppercase tracking-wider">${catName}</span></td>
+                    <td class="p-4 text-center">
+                        <button onclick="toggleAvailability(${item.id}, ${item.available})" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase transition-all hover:scale-105 ${avClass}">
+                            <span class="h-1.5 w-1.5 rounded-full ${item.available ? 'bg-gold-500' : 'bg-stone-500'}"></span>
+                            ${avLabel}
                         </button>
                     </td>
                     <td class="p-4 font-bold text-gold-500 font-serif text-base">${item.price.toFixed(2)} €</td>
                     <td class="p-4 text-right space-x-3 whitespace-nowrap">
-                        <button onclick="editProduct(${item.id})" class="text-gold-500 hover:text-gold-400 font-bold text-[10px] uppercase tracking-widest cursor-pointer transition-colors min-h-[44px] min-w-[44px]">Modifica</button>
-                        <button onclick="openDeleteModal(${item.id})" class="text-rose-500 hover:text-rose-400 font-bold text-[10px] uppercase tracking-widest cursor-pointer transition-colors min-h-[44px] min-w-[44px]">Elimina</button>
+                        <button onclick="editProduct(${item.id})" class="text-gold-500 hover:text-gold-400 font-bold text-xs uppercase tracking-widest cursor-pointer min-h-[44px] min-w-[44px]">Modifica</button>
+                        <button onclick="openDeleteModal(${item.id})" class="text-rose-500 hover:text-rose-400 font-bold text-xs uppercase tracking-widest cursor-pointer min-h-[44px] min-w-[44px]">Elimina</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
 
-                // 2. Renderizzare la scheda del prodotto (Vista Mobile)
+                // Mobile Card
                 const card = document.createElement('div');
-                card.className = "bg-dark-900 p-5 rounded-2xl border border-stone-900 flex flex-col gap-3 shadow-lg";
+                card.className = "bg-dark-900 border border-stone-900 rounded-2xl p-6 space-y-4 shadow-lg";
                 card.innerHTML = `
-                    <div class="flex justify-between items-start gap-4">
+                    <div class="flex justify-between items-start">
                         <div>
-                            <h4 class="font-serif font-bold text-stone-100 text-base">${item.name}</h4>
-                            ${item.description ? `<p class="text-xs text-stone-400 mt-1 font-sans font-light">${item.description}</p>` : ''}
+                            <h3 class="font-serif font-bold text-stone-100 text-xl leading-snug">${item.name}</h3>
+                            <span class="inline-block bg-stone-850 text-stone-300 text-xs font-semibold px-2.5 py-1 rounded uppercase tracking-wider mt-2">${catName}</span>
                         </div>
-                        <span class="font-bold text-gold-500 font-serif text-base whitespace-nowrap">${item.price.toFixed(2)} €</span>
+                        <span class="font-serif text-xl font-bold text-gold-500">${item.price.toFixed(2)} €</span>
                     </div>
-                    <div class="flex justify-between items-center mt-2 pt-3 border-t border-stone-850">
-                        <div class="flex items-center gap-2.5">
-                            <span class="bg-stone-850 text-stone-300 text-[9px] font-semibold px-2.5 py-1 rounded-md uppercase tracking-wider font-sans">${item.category}</span>
-                            <button onclick="toggleProductVisibility(${item.id}, ${item.available})" class="cursor-pointer">
-                                <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[8px] font-bold tracking-widest uppercase transition-all ${item.available ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
-                                    ${item.available ? 'Visibile' : 'Nascosto'}
-                                </span>
-                            </button>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="editProduct(${item.id})" class="bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 font-bold text-[10px] px-3.5 py-2 rounded-lg uppercase tracking-wider transition-all min-h-[44px] min-w-[44px]">Modifica</button>
-                            <button onclick="openDeleteModal(${item.id})" class="bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 font-bold text-[10px] px-3.5 py-2 rounded-lg uppercase tracking-wider transition-all min-h-[44px] min-w-[44px]">Elimina</button>
+                    ${item.description ? `<p class="text-sm text-stone-400 font-light leading-relaxed">${item.description}</p>` : ''}
+                    <div class="flex justify-between items-center pt-4 border-t border-stone-850">
+                        <button onclick="toggleAvailability(${item.id}, ${item.available})" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold uppercase ${avClass}">
+                            <span class="h-1.5 w-1.5 rounded-full ${item.available ? 'bg-gold-500' : 'bg-stone-500'}"></span>
+                            ${avLabel}
+                        </button>
+                        <div class="flex gap-4">
+                            <button onclick="editProduct(${item.id})" class="text-gold-500 hover:text-gold-400 text-sm font-bold uppercase min-h-[44px] min-w-[44px]">Modifica</button>
+                            <button onclick="openDeleteModal(${item.id})" class="text-rose-500 hover:text-rose-400 text-sm font-bold uppercase min-h-[44px] min-w-[44px]">Elimina</button>
                         </div>
                     </div>
                 `;
-                cardsContainer.appendChild(card);
+                mobileList.appendChild(card);
             });
         }
 
         function filterMenu() {
             const query = document.getElementById('search-input').value.toLowerCase();
-            const filtered = menuItems.filter(item => item.name.toLowerCase().includes(query) || item.category.toLowerCase().includes(query));
+            const filtered = menuItems.filter(item => {
+                const catName = categories.find(c => c.id === item.category_id)?.name || '';
+                return item.name.toLowerCase().includes(query) || catName.toLowerCase().includes(query);
+            });
             renderTable(filtered);
         }
 
@@ -629,97 +583,73 @@
             if (!supabaseClient) return;
 
             const id = document.getElementById('prod-id').value;
-            const categoryId = parseInt(document.getElementById('prod-category').value);
-            const name = document.getElementById('prod-name').value.trim();
-            const price = parseFloat(document.getElementById('prod-price').value);
-            const description = document.getElementById('prod-description').value.trim();
-            const minPersonsVal = document.getElementById('prod-min-persons').value;
-            const min_persons = minPersonsVal ? parseInt(minPersonsVal) : null;
-            const price_per_person = document.getElementById('prod-per-person').checked;
-
-            // Raccogli gli allergeni selezionati
-            const selectedAllergenCheckboxes = document.querySelectorAll('input[name="allergens"]:checked');
-            const selectedAllergenIds = Array.from(selectedAllergenCheckboxes).map(cb => parseInt(cb.value));
-
             const payload = {
-                category_id: categoryId,
-                name: name,
-                price: price,
-                description: description || null,
-                min_persons: min_persons,
-                price_per_person: price_per_person
+                name: document.getElementById('prod-name').value,
+                category_id: parseInt(document.getElementById('prod-category').value),
+                price: parseFloat(document.getElementById('prod-price').value),
+                description: document.getElementById('prod-description').value,
+                price_per_person: document.getElementById('prod-price-per-person').checked,
+                available: true
             };
 
+            const minPersVal = document.getElementById('prod-min-persons').value;
+            payload.min_persons = minPersVal ? parseInt(minPersVal) : null;
+
             try {
-                let productId = id;
-                let saveError;
-
+                let savedId;
                 if (id) {
-                    // Update del prodotto
                     const { error } = await supabaseClient.from('products').update(payload).eq('id', id);
-                    saveError = error;
+                    if (error) throw error;
+                    savedId = id;
                 } else {
-                    // Inserimento con calcolo del sort_order di coda
-                    const countInCategory = menuItems.filter(i => i.category_id === categoryId).length;
-                    payload.sort_order = countInCategory + 1;
-                    payload.available = true; // Di base visibile alla creazione
-                    
-                    const { data, error } = await supabaseClient.from('products').insert([payload]).select('id').single();
-                    saveError = error;
-                    if (data) productId = data.id;
+                    const sameCatCount = menuItems.filter(i => i.category_id === payload.category_id).length;
+                    payload.sort_order = sameCatCount + 1;
+
+                    const { data, error } = await supabaseClient.from('products').insert([payload]).select();
+                    if (error) throw error;
+                    savedId = data[0].id;
                 }
 
-                if (saveError) throw saveError;
-
-                // Aggiornamento relazionale della tabella ponte product_allergens
-                if (productId) {
-                    // 1. Rimuove le vecchie relazioni per questo prodotto
-                    await supabaseClient.from('product_allergens').delete().eq('product_id', productId);
-
-                    // 2. Inserisce le nuove se presenti
-                    if (selectedAllergenIds.length > 0) {
-                        const inserts = selectedAllergenIds.map(aid => ({
-                            product_id: productId,
-                            allergen_id: aid
-                        }));
-                        const { error: relError } = await supabaseClient.from('product_allergens').insert(inserts);
-                        if (relError) throw relError;
-                    }
+                await supabaseClient.from('product_allergens').delete().eq('product_id', savedId);
+                const selectedAllergens = Array.from(document.querySelectorAll('.allergen-chk:checked')).map(chk => parseInt(chk.value));
+                
+                if (selectedAllergens.length > 0) {
+                    const relations = selectedAllergens.map(alId => ({ product_id: savedId, allergen_id: alId }));
+                    const { error: relErr } = await supabaseClient.from('product_allergens').insert(relations);
+                    if (relErr) throw relErr;
                 }
 
-                showToast("Salvataggio completato con successo!");
+                showToast("Piatto salvato con successo!");
                 resetForm();
-                await fetchMenu();
-
+                fetchInitialData();
             } catch (err) {
-                console.error("Errore durante il salvataggio relazionale:", err);
-                showToast("Errore durante il salvataggio del piatto: " + err.message, false);
+                console.error(err);
+                showToast("Errore durante il salvataggio", false);
             }
         }
 
         function editProduct(id) {
             const item = menuItems.find(i => i.id == id);
             if (!item) return;
-            
+
             document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-gold-500"></i> Modifica Piatto`;
             document.getElementById('prod-id').value = item.id;
             document.getElementById('prod-name').value = item.name;
             document.getElementById('prod-category').value = item.category_id;
             document.getElementById('prod-price').value = item.price;
             document.getElementById('prod-min-persons').value = item.min_persons || '';
-            document.getElementById('prod-per-person').checked = item.price_per_person || false;
+            document.getElementById('prod-price-per-person').checked = item.price_per_person;
             document.getElementById('prod-description').value = item.description || '';
-            
-            // Ripristina gli allergeni selezionati nel form
-            const checkboxes = document.querySelectorAll('input[name="allergens"]');
-            checkboxes.forEach(cb => {
-                cb.checked = item.allergens ? item.allergens.includes(parseInt(cb.value)) : false;
+
+            document.querySelectorAll('.allergen-chk').forEach(chk => chk.checked = false);
+            const activeAllergens = productAllergens.filter(pa => pa.product_id === item.id).map(pa => pa.allergen_id);
+            activeAllergens.forEach(alId => {
+                const chk = document.getElementById(`al-${alId}`);
+                if (chk) chk.checked = true;
             });
 
             document.getElementById('cancel-btn').classList.remove('hidden');
-            
-            // Scroll automatico fino in cima su mobile per poter modificare subito il form
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: 'smooth' }); 
         }
 
         function openDeleteModal(id) {
@@ -739,13 +669,12 @@
 
         async function confirmDelete() {
             if (idToDelete === null || !supabaseClient) return;
-            // Rimuove a cascata (la foreign key on delete cascade gestisce product_allergens in automatico)
             const { error } = await supabaseClient.from('products').delete().eq('id', idToDelete);
-            if (error) { 
-                showToast("Impossibile eliminare", false); 
-            } else { 
-                showToast("Piatto rimosso con successo", true); 
-                fetchMenu(); 
+            if (error) {
+                showToast("Impossibile eliminare", false);
+            } else {
+                showToast("Piatto rimosso!");
+                fetchInitialData();
             }
             closeDeleteModal();
         }
@@ -754,13 +683,12 @@
             document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-plus-circle text-gold-500"></i> Aggiungi Prodotto`;
             document.getElementById('product-form').reset();
             document.getElementById('prod-id').value = '';
-            document.getElementById('prod-per-person').checked = false;
-            
-            const checkboxes = document.querySelectorAll('input[name="allergens"]');
-            checkboxes.forEach(cb => cb.checked = false);
-
+            document.querySelectorAll('.allergen-chk').forEach(chk => chk.checked = false);
             document.getElementById('cancel-btn').classList.add('hidden');
         }
     </script>
 </body>
 </html>
+
+
+```
