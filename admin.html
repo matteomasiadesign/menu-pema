@@ -87,7 +87,7 @@
         <span id="toast-message" class="text-xs font-semibold uppercase tracking-widest"></span>
     </div>
 
-    <!-- Modale Eliminazione -->
+    <!-- Modale Eliminazione Prodotto -->
     <div id="confirm-delete-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-dark-900 rounded-2xl max-w-sm w-full p-8 border border-stone-900 transform scale-95 opacity-0 transition-all duration-300" id="delete-modal-content">
             <h3 class="font-serif text-xl font-bold text-stone-100 uppercase tracking-widest">Eliminare questo piatto?</h3>
@@ -95,6 +95,18 @@
             <div class="flex gap-4 mt-8">
                 <button onclick="closeDeleteModal()" class="flex-1 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-3.5 rounded-xl transition-all text-xs tracking-wider uppercase cursor-pointer min-h-[44px]">Annulla</button>
                 <button id="confirm-delete-btn" onclick="confirmDelete()" class="flex-1 bg-rose-700 hover:bg-rose-800 text-white font-bold py-3.5 rounded-xl transition-all text-xs tracking-wider uppercase cursor-pointer min-h-[44px]">Elimina</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Eliminazione Categoria -->
+    <div id="confirm-delete-cat-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-dark-900 rounded-2xl max-w-sm w-full p-8 border border-stone-900 transform scale-95 opacity-0 transition-all duration-300" id="delete-cat-modal-content">
+            <h3 class="font-serif text-xl font-bold text-stone-100 uppercase tracking-widest text-rose-500"><i class="fa-solid fa-triangle-exclamation"></i> Eliminare Categoria?</h3>
+            <p class="text-stone-400 text-xs mt-3 leading-relaxed font-light">L'azione rimuoverà permanentemente la categoria.<br><br><span class="font-bold text-stone-300">Nota:</span> puoi eliminare una categoria solo se non ci sono più piatti associati ad essa.</p>
+            <div class="flex gap-4 mt-8">
+                <button onclick="closeDeleteCatModal()" class="flex-1 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-3.5 rounded-xl transition-all text-xs tracking-wider uppercase cursor-pointer min-h-[44px]">Annulla</button>
+                <button onclick="confirmDeleteCategory()" class="flex-1 bg-rose-700 hover:bg-rose-800 text-white font-bold py-3.5 rounded-xl transition-all text-xs tracking-wider uppercase cursor-pointer min-h-[44px]">Procedi</button>
             </div>
         </div>
     </div>
@@ -123,14 +135,12 @@
         </header>
 
         <!-- Selettore Tab -->
-        <div class="max-w-6xl mx-auto px-4 mt-8 w-full">
-            <div class="flex border-b border-stone-900">
-                <button onclick="switchTab('gestione')" id="tab-gestione" class="px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all">Gestione Piatti</button>
-                <button onclick="switchTab('ordinamento')" id="tab-ordinamento" class="px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2">
+        <div class="max-w-6xl mx-auto px-4 mt-8 w-full overflow-x-auto no-scrollbar">
+            <div class="flex border-b border-stone-900 min-w-max">
+                <button onclick="switchTab('gestione')" id="tab-gestione" class="px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all whitespace-nowrap">Gestione Piatti</button>
+                <button onclick="switchTab('categorie')" id="tab-categorie" class="px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all whitespace-nowrap">Gestione Categorie</button>
+                <button onclick="switchTab('ordinamento')" id="tab-ordinamento" class="px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2 whitespace-nowrap">
                     <i class="fa-solid fa-arrows-up-down text-xs"></i> Ordinamento Portate
-                </button>
-                <button onclick="switchTab('impostazioni')" id="tab-impostazioni" class="px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-image text-xs"></i> Encoder Logo Base64
                 </button>
             </div>
         </div>
@@ -225,7 +235,45 @@
                 </div>
             </div>
 
-            <!-- SEZIONE 2: INTERFACCIA RIORDINAMENTO PORTATE -->
+            <!-- SEZIONE 2: GESTIONE CATEGORIE -->
+            <div id="section-categorie" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 w-full items-start">
+                
+                <!-- Aggiungi Categoria -->
+                <div class="lg:col-span-4 lg:sticky lg:top-24 w-full">
+                    <div class="bg-dark-900 p-6 rounded-2xl border border-stone-900">
+                        <h2 class="font-serif text-lg font-bold text-gold-500 mb-6 uppercase tracking-widest flex items-center gap-2">
+                            <i class="fa-solid fa-folder-plus"></i> Nuova Categoria
+                        </h2>
+                        <form onsubmit="saveCategory(event)" class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Nome Sezione *</label>
+                                <input type="text" id="new-cat-name" required placeholder="es. Fuori Menù..." class="w-full text-base p-4 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans">
+                                <p class="text-stone-500 text-[10px] mt-2 leading-relaxed">Le nuove categorie vengono posizionate automaticamente in fondo alla lista. Potrai riordinarle dal tab "Ordinamento".</p>
+                            </div>
+                            <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-colors text-xs tracking-widest uppercase cursor-pointer min-h-[48px]">Aggiungi</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Elenco Categorie -->
+                <div class="lg:col-span-8 w-full">
+                    <div class="bg-dark-900 rounded-2xl border border-stone-900 overflow-hidden shadow-2xl">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-stone-900 text-xs font-bold text-stone-500 uppercase tracking-widest bg-black/40">
+                                        <th class="p-4">Nome Categoria</th>
+                                        <th class="p-4 text-right">Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="categories-table-body" class="divide-y divide-stone-900/60 text-sm"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEZIONE 3: INTERFACCIA RIORDINAMENTO PORTATE -->
             <div id="section-ordinamento" class="hidden bg-dark-900 rounded-2xl border border-stone-900 p-6 md:p-8 max-w-3xl mx-auto shadow-2xl">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-850 pb-6 mb-6">
                     <div>
@@ -237,36 +285,6 @@
                     </select>
                 </div>
                 <div id="reorder-list-container" class="space-y-3"></div>
-            </div>
-
-            <!-- SEZIONE 3: CONVERTITORE/ENCODER LOGO IN BASE64 -->
-            <div id="section-impostazioni" class="hidden bg-dark-900 rounded-2xl border border-stone-900 p-6 md:p-8 max-w-xl mx-auto shadow-2xl space-y-6">
-                <div>
-                    <h2 class="font-serif text-2xl text-gold-500 uppercase tracking-widest">Encoder Logo in Base64</h2>
-                    <p class="text-stone-400 text-sm mt-1">Usa questo strumento interno per convertire il tuo file di logo WebP o PNG direttamente in una stringa di testo Base64 ultra-compatta.</p>
-                </div>
-                
-                <div id="drop-zone" class="border-2 border-dashed border-stone-800 hover:border-gold-500/40 rounded-2xl p-8 text-center bg-dark-950/50 transition-all cursor-pointer flex flex-col items-center justify-center space-y-4">
-                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-stone-500"></i>
-                    <div>
-                        <p class="text-sm font-semibold text-stone-200">Trascina qui l'immagine del logo</p>
-                        <p class="text-xs text-stone-500 mt-1">Scegli il file logo WebP senza sfondo</p>
-                    </div>
-                    <input type="file" id="logo-file-input" accept="image/*" class="hidden">
-                    <button type="button" onclick="document.getElementById('logo-file-input').click()" class="bg-stone-850 hover:bg-stone-800 text-stone-300 font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-all">Seleziona File</button>
-                </div>
-
-                <div id="base64-result-container" class="hidden space-y-4">
-                    <p class="text-xs font-bold text-stone-400 uppercase tracking-wider">Anteprima del Logo convertito:</p>
-                    <div class="bg-black/30 border border-stone-900 rounded-2xl p-6 flex items-center justify-center">
-                        <img id="base64-preview" src="" alt="Anteprima Logo" class="h-20 w-auto object-contain">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Codice Base64 Generato:</label>
-                        <textarea id="base64-text" readonly rows="5" class="w-full text-xs font-mono p-4 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-400 focus:border-gold-500 transition-all resize-none"></textarea>
-                    </div>
-                    <button onclick="copyGeneratedBase64()" class="w-full bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-all cursor-pointer text-xs tracking-widest uppercase">Copia Codice Logo negli Appunti</button>
-                </div>
             </div>
 
         </main>
@@ -283,6 +301,7 @@
         let allergens = [];
         let productAllergens = [];
         let idToDelete = null;
+        let idCatToDelete = null;
 
         try {
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -290,7 +309,7 @@
             console.error("Errore init Supabase.");
         }
 
-        // Mantenimento della sessione Auth al caricamento
+        // Recupera la sessione persistente al caricamento della pagina
         document.addEventListener('DOMContentLoaded', async () => {
             if (supabaseClient) {
                 const { data: { session } } = await supabaseClient.auth.getSession();
@@ -302,32 +321,32 @@
 
         function switchTab(tab) {
             const tabGestione = document.getElementById('tab-gestione');
+            const tabCategorie = document.getElementById('tab-categorie');
             const tabOrdinamento = document.getElementById('tab-ordinamento');
-            const tabImpostazioni = document.getElementById('tab-impostazioni');
             
             const sectionGestione = document.getElementById('section-gestione');
+            const sectionCategorie = document.getElementById('section-categorie');
             const sectionOrdinamento = document.getElementById('section-ordinamento');
-            const sectionImpostazioni = document.getElementById('section-impostazioni');
 
-            tabGestione.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all";
-            tabOrdinamento.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2";
-            tabImpostazioni.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2";
+            // Reset classi
+            tabGestione.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all whitespace-nowrap";
+            tabCategorie.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all whitespace-nowrap";
+            tabOrdinamento.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2 whitespace-nowrap";
             
             sectionGestione.classList.add('hidden');
+            sectionCategorie.classList.add('hidden');
             sectionOrdinamento.classList.add('hidden');
-            sectionImpostazioni.classList.add('hidden');
 
             if (tab === 'gestione') {
-                tabGestione.className = "px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all";
+                tabGestione.className = "px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all whitespace-nowrap";
                 sectionGestione.classList.remove('hidden');
+            } else if (tab === 'categorie') {
+                tabCategorie.className = "px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all whitespace-nowrap";
+                sectionCategorie.classList.remove('hidden');
             } else if (tab === 'ordinamento') {
-                tabOrdinamento.className = "px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all flex items-center gap-2";
+                tabOrdinamento.className = "px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all flex items-center gap-2 whitespace-nowrap";
                 sectionOrdinamento.classList.remove('hidden');
                 populateReorderCategories();
-            } else if (tab === 'impostazioni') {
-                tabImpostazioni.className = "px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all flex items-center gap-2";
-                sectionImpostazioni.classList.remove('hidden');
-                setupLogoDragAndDrop();
             }
         }
 
@@ -358,7 +377,6 @@
             try {
                 if (!supabaseClient) throw new Error("Supabase non disponibile.");
                 
-                // Login con Supabase Auth nativo e la mail hardcodata
                 const { data, error } = await supabaseClient.auth.signInWithPassword({
                     email: ADMIN_EMAIL,
                     password: inputPass,
@@ -372,7 +390,6 @@
                 unlockDashboard();
             } catch (err) {
                 console.error(err);
-                // Stampa l'errore esatto restituito da Supabase
                 errorLabel.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${err.message || "Errore di connessione."}`;
                 errorLabel.classList.remove('hidden');
                 loginBtn.innerHTML = originalBtnText;
@@ -427,6 +444,7 @@
                 populateCategoryDropdowns();
                 renderAllergensCheckboxes();
                 renderTable(menuItems);
+                renderCategoriesTable();
             } catch (e) {
                 console.error(e);
             }
@@ -438,6 +456,99 @@
             if (data) menuItems = data;
             renderTable(menuItems);
         }
+
+        // --- GESTIONE CATEGORIE ---
+        async function saveCategory(e) {
+            e.preventDefault();
+            if (!supabaseClient) return;
+            
+            const catNameInput = document.getElementById('new-cat-name');
+            const catName = catNameInput.value.trim();
+            if (!catName) return;
+
+            // Trova il sort_order più alto per metterlo in fondo
+            const maxSort = categories.reduce((max, c) => Math.max(max, c.sort_order || 0), 0);
+            
+            try {
+                const { error } = await supabaseClient.from('categories').insert([{
+                    name: catName,
+                    sort_order: maxSort + 1
+                }]);
+                
+                if (error) throw error;
+                
+                showToast("Categoria creata con successo!");
+                catNameInput.value = '';
+                fetchInitialData(); // Aggiorna DB locale, tendine e liste
+            } catch (err) {
+                console.error(err);
+                showToast("Errore durante la creazione", false);
+            }
+        }
+
+        function renderCategoriesTable() {
+            const tbody = document.getElementById('categories-table-body');
+            tbody.innerHTML = '';
+            
+            if (categories.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="2" class="p-8 text-center text-stone-500 italic text-sm">Nessuna categoria trovata.</td></tr>`;
+                return;
+            }
+
+            categories.forEach(cat => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-stone-900/40 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <div class="font-serif font-bold text-stone-100 text-lg uppercase tracking-wider">${cat.name}</div>
+                    </td>
+                    <td class="p-4 text-right">
+                        <button onclick="openDeleteCatModal(${cat.id})" class="text-rose-500 hover:text-rose-400 font-bold text-xs uppercase tracking-widest cursor-pointer min-h-[44px] min-w-[44px]">Elimina</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openDeleteCatModal(id) {
+            idCatToDelete = id;
+            const modal = document.getElementById('confirm-delete-cat-modal');
+            const content = document.getElementById('delete-cat-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => { content.classList.remove('scale-95', 'opacity-0'); }, 10);
+        }
+
+        function closeDeleteCatModal() {
+            const modal = document.getElementById('confirm-delete-cat-modal');
+            const content = document.getElementById('delete-cat-modal-content');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); idCatToDelete = null; }, 300);
+        }
+
+        async function confirmDeleteCategory() {
+            if (idCatToDelete === null || !supabaseClient) return;
+            
+            // Supabase (se ha la foreign key restrittiva) bloccherà l'eliminazione se ci sono piatti.
+            // Possiamo anche fare un check front-end per dare un messaggio più pulito.
+            const hasProducts = menuItems.some(i => i.category_id === idCatToDelete);
+            if (hasProducts) {
+                showToast("Errore: la categoria contiene piatti. Rimuovili prima di procedere.", false);
+                closeDeleteCatModal();
+                return;
+            }
+            
+            const { error } = await supabaseClient.from('categories').delete().eq('id', idCatToDelete);
+            
+            if (error) {
+                console.error(error);
+                showToast("Errore durante l'eliminazione.", false);
+            } else {
+                showToast("Categoria rimossa!");
+                fetchInitialData();
+            }
+            closeDeleteCatModal();
+        }
+        // --- FINE GESTIONE CATEGORIE ---
 
         function populateCategoryDropdowns() {
             const selectForm = document.getElementById('prod-category');
@@ -666,64 +777,88 @@
             document.getElementById('cancel-btn').classList.add('hidden');
         }
 
+        function populateReorderCategories() {
+            const select = document.getElementById('reorder-cat-select');
+            select.innerHTML = '';
+            if (categories.length === 0) return;
+            categories.forEach(cat => {
+                select.innerHTML += `<option value="${cat.id}">${cat.name.toUpperCase()}</option>`;
+            });
+            loadReorderCategory();
+        }
+
+        function loadReorderCategory() {
+            const selectVal = document.getElementById('reorder-cat-select').value;
+            const container = document.getElementById('reorder-list-container');
+            container.innerHTML = '';
+            if (!selectVal) return;
+
+            const categoryItems = menuItems.filter(i => i.category_id == selectVal);
+            categoryItems.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+            if (categoryItems.length === 0) {
+                container.innerHTML = '<div class="text-center py-10 text-stone-500 italic text-sm">Nessun piatto in questa categoria.</div>';
+                return;
+            }
+
+            categoryItems.forEach((item, index) => {
+                const isFirst = index === 0;
+                const isLast = index === categoryItems.length - 1;
+
+                const div = document.createElement('div');
+                div.className = "bg-dark-850 p-4 rounded-xl border border-stone-850 flex justify-between items-center gap-4 hover:border-gold-500/30 transition-colors";
+                div.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <span class="font-serif font-bold text-gold-500/80 text-base">#${index + 1}</span>
+                        <div>
+                            <h4 class="font-serif font-bold text-stone-100 text-base">${item.name}</h4>
+                            <p class="text-xs text-stone-500 font-mono mt-0.5">Ordinamento: ${item.sort_order || 0}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="swapOrder(${index}, ${index - 1}, ${selectVal})" ${isFirst ? 'disabled' : ''} class="w-11 h-11 rounded-lg bg-dark-900 border border-stone-800 text-stone-300 hover:text-gold-500 disabled:opacity-30 flex items-center justify-center transition-all cursor-pointer">
+                            <i class="fa-solid fa-arrow-up text-sm"></i>
+                        </button>
+                        <button onclick="swapOrder(${index}, ${index + 1}, ${selectVal})" ${isLast ? 'disabled' : ''} class="w-11 h-11 rounded-lg bg-dark-900 border border-stone-800 text-stone-300 hover:text-gold-500 disabled:opacity-30 flex items-center justify-center transition-all cursor-pointer">
+                            <i class="fa-solid fa-arrow-down text-sm"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function swapOrder(currIdx, targetIdx, catId) {
+            const categoryItems = menuItems.filter(i => i.category_id == catId);
+            categoryItems.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+            const currentItem = categoryItems[currIdx];
+            const targetItem = categoryItems[targetIdx];
+
+            const tempOrder = currentItem.sort_order;
+            currentItem.sort_order = targetItem.sort_order;
+            targetItem.sort_order = tempOrder;
+
+            loadReorderCategory(); 
+
+            if (!supabaseClient) return;
+            const { error: err1 } = await supabaseClient.from('products').update({ sort_order: currentItem.sort_order }).eq('id', currentItem.id);
+            const { error: err2 } = await supabaseClient.from('products').update({ sort_order: targetItem.sort_order }).eq('id', targetItem.id);
+
+            if (err1 || err2) {
+                showToast("Errore di riordinamento nel database", false);
+                fetchMenu();
+            } else {
+                showToast("Sequenza aggiornata con successo!");
+                fetchMenu();
+            }
+        }
+
         function showSqlNoticeModal() { document.getElementById('sql-notice-modal').classList.remove('hidden'); }
         function closeSqlModal() { document.getElementById('sql-notice-modal').classList.add('hidden'); }
         function copySqlCode() {
             const code = document.getElementById('sql-code-text').innerText;
             navigator.clipboard.writeText(code).then(() => { showToast("Codice copiato!"); });
-        }
-
-        function setupLogoDragAndDrop() {
-            const dropZone = document.getElementById('drop-zone');
-            const fileInput = document.getElementById('logo-file-input');
-
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, preventDefaults, false);
-            });
-
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => dropZone.classList.add('border-gold-500'), false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => dropZone.classList.remove('border-gold-500'), false);
-            });
-
-            dropZone.addEventListener('drop', (e) => {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                if (files.length > 0) processLogoFile(files[0]);
-            });
-
-            fileInput.addEventListener('change', (e) => {
-                if (fileInput.files.length > 0) processLogoFile(fileInput.files[0]);
-            });
-        }
-
-        function processLogoFile(file) {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onloadend = function() {
-                const base64data = reader.result;
-                document.getElementById('base64-text').value = base64data;
-                document.getElementById('base64-preview').src = base64data;
-                document.getElementById('base64-result-container').classList.remove('hidden');
-                showToast("Immagine codificata correttamente!");
-            }
-        }
-
-        function copyGeneratedBase64() {
-            const copyText = document.getElementById('base64-text');
-            copyText.select();
-            copyText.setSelectionRange(0, 99999); 
-            navigator.clipboard.writeText(copyText.value).then(() => {
-                showToast("Codice Base64 copiato con successo!");
-            });
         }
     </script>
 </body>
