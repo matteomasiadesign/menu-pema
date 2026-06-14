@@ -33,7 +33,6 @@
 </head>
 <body class="bg-dark-950 text-stone-200 font-sans min-h-screen flex flex-col selection:bg-gold-500 selection:text-dark-950">
 
-    <!-- SCHERMATA LOGIN -->
     <div id="login-container" class="fixed inset-0 bg-dark-950 flex items-center justify-center p-4 z-50 transition-opacity duration-300 animate-fade-in">
         <div class="bg-dark-900 rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-stone-900 text-center space-y-6">
             <div class="flex flex-col items-center justify-center space-y-3">
@@ -528,8 +527,7 @@
         async function confirmDeleteCategory() {
             if (idCatToDelete === null || !supabaseClient) return;
             
-            // Supabase (se ha la foreign key restrittiva) bloccherà l'eliminazione se ci sono piatti.
-            // Possiamo anche fare un check front-end per dare un messaggio più pulito.
+            // Verifica front-end per evitare errori FK.
             const hasProducts = menuItems.some(i => i.category_id === idCatToDelete);
             if (hasProducts) {
                 showToast("Errore: la categoria contiene piatti. Rimuovili prima di procedere.", false);
@@ -829,28 +827,42 @@
         }
 
         async function swapOrder(currIdx, targetIdx, catId) {
-            const categoryItems = menuItems.filter(i => i.category_id == catId);
+            // Prendi tutti gli elementi della categoria ordinati
+            let categoryItems = menuItems.filter(i => i.category_id == catId);
             categoryItems.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
-            const currentItem = categoryItems[currIdx];
-            const targetItem = categoryItems[targetIdx];
+            // Esegui lo scambio a livello di array
+            const temp = categoryItems[currIdx];
+            categoryItems[currIdx] = categoryItems[targetIdx];
+            categoryItems[targetIdx] = temp;
 
-            const tempOrder = currentItem.sort_order;
-            currentItem.sort_order = targetItem.sort_order;
-            targetItem.sort_order = tempOrder;
+            // Ricalcola il sort_order per tutta la categoria in modo sequenziale (1, 2, 3...)
+            // Questo impedisce bug derivanti da sort_order doppi o nulli pre-esistenti nel db.
+            categoryItems.forEach((item, index) => {
+                item.sort_order = index + 1;
+            });
 
+            // Aggiorna subito la visualizzazione in memoria per velocità
             loadReorderCategory(); 
 
             if (!supabaseClient) return;
-            const { error: err1 } = await supabaseClient.from('products').update({ sort_order: currentItem.sort_order }).eq('id', currentItem.id);
-            const { error: err2 } = await supabaseClient.from('products').update({ sort_order: targetItem.sort_order }).eq('id', targetItem.id);
 
-            if (err1 || err2) {
+            // Prepara le query di aggiornamento per tutti gli elementi ricalcolati
+            const updates = categoryItems.map(item =>
+                supabaseClient.from('products').update({ sort_order: item.sort_order }).eq('id', item.id)
+            );
+
+            // Esegui le query in parallelo
+            const results = await Promise.all(updates);
+            
+            const hasError = results.some(res => res.error);
+
+            if (hasError) {
                 showToast("Errore di riordinamento nel database", false);
-                fetchMenu();
+                fetchMenu(); // Revert
             } else {
                 showToast("Sequenza aggiornata con successo!");
-                fetchMenu();
+                fetchMenu(); // Sincronizza lo stato master
             }
         }
 
