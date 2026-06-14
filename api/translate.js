@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { targetLang, items } = req.body || {};
+  const { targetLang, items, categories } = req.body || {};
 
   if (!targetLang || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ error: 'Parametri mancanti (targetLang, items)' });
@@ -23,9 +23,13 @@ export default async function handler(req, res) {
   }
 
   const systemPrompt = `You are a professional culinary and wine translator for a high-end Italian restaurant.
-Translate the provided JSON array of Italian menu items into elegant, natural ${langName}.
+Translate the provided JSON data into elegant, natural ${langName}.
 
-CRITICAL RULES:
+The data has two parts:
+- "items": an array of menu items, each with "id", "name", "description".
+- "categories": an array of menu category/section names (e.g. "Primi Piatti", "Brace e Forno", "Vini Rossi").
+
+CRITICAL RULES FOR ITEMS:
 1. Translate the "description" field fully and naturally into ${langName}.
 2. For the "name" field, follow these rules carefully:
    - If the name is a generic Italian dish description (e.g. "Tagliata di manzo con rucola e grana"), translate it naturally into ${langName}, but KEEP any proper nouns, brand names, geographic indications, or specific product names untouched within the translation (e.g. keep "Fiore Sardo", "Pecorino", "Bottarga", "Fregula", "Guanciale", "Culurgiones").
@@ -33,7 +37,13 @@ CRITICAL RULES:
    - Never invent, shorten, or alter brand names, winery names, grape varietals, or appellation names under any circumstance.
 3. The translation must sound appetizing, natural and professional in ${langName}, never literal or robotic.
 4. Preserve numbers, units (cl, ml, gr), vintages/years, and percentages exactly as given.
-5. Return ONLY a valid JSON object matching the provided schema, with no markdown, no comments, and no text outside the JSON.`;
+
+CRITICAL RULES FOR CATEGORIES:
+5. Translate each category/section name into ${langName} as a short menu heading (e.g. "Primi Piatti" -> appropriate translation for "First Courses" in ${langName}, "Brace e Forno" -> appropriate translation for "Grill & Oven").
+6. If a category name is itself a proper noun, wine type, or appellation (e.g. "Franciacorta", "Champagne"), leave it unchanged.
+7. Return each category exactly once, preserving the original Italian "name" field so it can be matched back.
+
+8. Return ONLY a valid JSON object matching the provided schema, with no markdown, no comments, and no text outside the JSON.`;
 
   const sourceData = items.map(item => ({
     id: item.id,
@@ -41,7 +51,9 @@ CRITICAL RULES:
     description: item.description || ''
   }));
 
-  const userQuery = `Translate this JSON list to ${langName}:\n${JSON.stringify(sourceData)}`;
+  const sourceCategories = Array.isArray(categories) ? categories : [];
+
+  const userQuery = `Translate this data to ${langName}:\n${JSON.stringify({ items: sourceData, categories: sourceCategories })}`;
 
   const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
 
@@ -63,9 +75,20 @@ CRITICAL RULES:
               },
               required: ['id', 'name', 'description']
             }
+          },
+          translatedCategories: {
+            type: 'ARRAY',
+            items: {
+              type: 'OBJECT',
+              properties: {
+                name: { type: 'STRING' },
+                translated: { type: 'STRING' }
+              },
+              required: ['name', 'translated']
+            }
           }
         },
-        required: ['translatedItems']
+        required: ['translatedItems', 'translatedCategories']
       }
     },
     systemInstruction: { parts: [{ text: systemPrompt }] }
@@ -111,9 +134,10 @@ CRITICAL RULES:
     }
 
     const parsed = JSON.parse(textResponse);
-    const translatedItems = parsed.translatedItems || parsed;
+    const translatedItems = parsed.translatedItems || [];
+    const translatedCategories = parsed.translatedCategories || [];
 
-    return res.status(200).json({ translatedItems });
+    return res.status(200).json({ translatedItems, translatedCategories });
   } catch (err) {
     console.error('Errore interno:', err);
     return res.status(500).json({ error: 'Errore interno del server' });
