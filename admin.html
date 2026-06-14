@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -11,9 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase SDK e MD5 CDN -->
+    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -39,8 +37,8 @@
     <div id="login-container" class="fixed inset-0 bg-dark-950 flex items-center justify-center p-4 z-50 transition-opacity duration-300 animate-fade-in">
         <div class="bg-dark-900 rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-stone-900 text-center space-y-6">
             <div class="flex flex-col items-center justify-center space-y-3">
-                <!-- Logo WebP su login -->
-                <img id="login-logo-img" src="logo.webp" alt="PEMA" class="h-20 sm:h-24 w-auto object-contain select-none" onerror="this.style.display='none'; document.getElementById('login-fallback-txt').classList.remove('hidden');">
+                <!-- Logo WebP su login, path esplicito relativo -->
+                <img id="login-logo-img" src="./logo.webp" alt="PEMA" class="h-20 sm:h-24 w-auto object-contain select-none" onerror="this.style.display='none'; document.getElementById('login-fallback-txt').classList.remove('hidden');">
                 <h1 id="login-fallback-txt" class="hidden font-serif text-3xl tracking-[0.2em] text-gold-500 font-light uppercase">P E M A</h1>
                 <p class="font-serif text-[9px] tracking-[0.35em] text-stone-500 uppercase italic">Pannello Amministrativo</p>
             </div>
@@ -56,7 +54,7 @@
                     </div>
                 </div>
                 <div id="login-error" class="text-xs text-rose-400 font-medium bg-rose-950/20 p-3.5 rounded-xl border border-rose-900/30 hidden flex items-center gap-2">
-                    <i class="fa-solid fa-circle-exclamation"></i> Password non valida o database offline.
+                    <!-- Il testo verrà popolato dinamicamente con l'errore esatto -->
                 </div>
                 <button type="submit" id="login-btn" class="w-full bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-all cursor-pointer text-sm tracking-widest uppercase flex items-center justify-center gap-2 min-h-[48px]">
                     <span>Entra nel Gestionale</span>
@@ -107,8 +105,8 @@
             <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
                 
                 <div class="flex items-center gap-4 justify-center sm:justify-start">
-                    <!-- Logo WebP sulla Dashboard -->
-                    <img id="dash-logo-img" src="logo.webp" alt="PEMA" class="h-10 sm:h-12 w-auto object-contain select-none" onerror="this.style.display='none'; document.getElementById('dash-fallback-txt').classList.remove('hidden');">
+                    <!-- Logo WebP sulla Dashboard, path esplicito -->
+                    <img id="dash-logo-img" src="./logo.webp" alt="PEMA" class="h-10 sm:h-12 w-auto object-contain select-none" onerror="this.style.display='none'; document.getElementById('dash-fallback-txt').classList.remove('hidden');">
                     <div>
                         <h1 id="dash-fallback-txt" class="hidden font-serif text-xl sm:text-2xl tracking-[0.2em] text-gold-500 font-light uppercase select-none">PEMA</h1>
                         <p class="text-stone-500 text-[10px] uppercase tracking-[0.25em] mt-0.5">Gestione e Configurazione Piatti</p>
@@ -116,7 +114,7 @@
                 </div>
                 
                 <div class="flex items-center gap-4">
-                    <span class="text-[9px] bg-gold-500/10 text-gold-400 border border-gold-500/20 px-3 py-1.5 rounded-md font-mono uppercase font-semibold">Supabase Live</span>
+                    <span class="text-[9px] bg-gold-500/10 text-gold-400 border border-gold-500/20 px-3 py-1.5 rounded-md font-mono uppercase font-semibold">Auth Live</span>
                     <button onclick="logout()" class="text-stone-400 hover:text-stone-100 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer min-h-[44px]">
                         Disconnetti <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     </button>
@@ -130,6 +128,9 @@
                 <button onclick="switchTab('gestione')" id="tab-gestione" class="px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all">Gestione Piatti</button>
                 <button onclick="switchTab('ordinamento')" id="tab-ordinamento" class="px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2">
                     <i class="fa-solid fa-arrows-up-down text-xs"></i> Ordinamento Portate
+                </button>
+                <button onclick="switchTab('impostazioni')" id="tab-impostazioni" class="px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-image text-xs"></i> Encoder Logo Base64
                 </button>
             </div>
         </div>
@@ -238,12 +239,43 @@
                 <div id="reorder-list-container" class="space-y-3"></div>
             </div>
 
+            <!-- SEZIONE 3: CONVERTITORE/ENCODER LOGO IN BASE64 -->
+            <div id="section-impostazioni" class="hidden bg-dark-900 rounded-2xl border border-stone-900 p-6 md:p-8 max-w-xl mx-auto shadow-2xl space-y-6">
+                <div>
+                    <h2 class="font-serif text-2xl text-gold-500 uppercase tracking-widest">Encoder Logo in Base64</h2>
+                    <p class="text-stone-400 text-sm mt-1">Usa questo strumento interno per convertire il tuo file di logo WebP o PNG direttamente in una stringa di testo Base64 ultra-compatta.</p>
+                </div>
+                
+                <div id="drop-zone" class="border-2 border-dashed border-stone-800 hover:border-gold-500/40 rounded-2xl p-8 text-center bg-dark-950/50 transition-all cursor-pointer flex flex-col items-center justify-center space-y-4">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-stone-500"></i>
+                    <div>
+                        <p class="text-sm font-semibold text-stone-200">Trascina qui l'immagine del logo</p>
+                        <p class="text-xs text-stone-500 mt-1">Scegli il file logo WebP senza sfondo</p>
+                    </div>
+                    <input type="file" id="logo-file-input" accept="image/*" class="hidden">
+                    <button type="button" onclick="document.getElementById('logo-file-input').click()" class="bg-stone-850 hover:bg-stone-800 text-stone-300 font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-all">Seleziona File</button>
+                </div>
+
+                <div id="base64-result-container" class="hidden space-y-4">
+                    <p class="text-xs font-bold text-stone-400 uppercase tracking-wider">Anteprima del Logo convertito:</p>
+                    <div class="bg-black/30 border border-stone-900 rounded-2xl p-6 flex items-center justify-center">
+                        <img id="base64-preview" src="" alt="Anteprima Logo" class="h-20 w-auto object-contain">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Codice Base64 Generato:</label>
+                        <textarea id="base64-text" readonly rows="5" class="w-full text-xs font-mono p-4 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-400 focus:border-gold-500 transition-all resize-none"></textarea>
+                    </div>
+                    <button onclick="copyGeneratedBase64()" class="w-full bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-all cursor-pointer text-xs tracking-widest uppercase">Copia Codice Logo negli Appunti</button>
+                </div>
+            </div>
+
         </main>
     </div>
 
     <script>
         const SUPABASE_URL = "https://cpmianmjcxhputneygsw.supabase.co";
         const SUPABASE_KEY = "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm";
+        const ADMIN_EMAIL = "adminpema@pema.it"; // <-- Auth ufficiale Supabase
         
         let supabaseClient;
         let menuItems = [];
@@ -258,108 +290,45 @@
             console.error("Errore init Supabase.");
         }
 
+        // Mantenimento della sessione Auth al caricamento
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (supabaseClient) {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    unlockDashboard();
+                }
+            }
+        });
+
         function switchTab(tab) {
             const tabGestione = document.getElementById('tab-gestione');
             const tabOrdinamento = document.getElementById('tab-ordinamento');
+            const tabImpostazioni = document.getElementById('tab-impostazioni');
+            
             const sectionGestione = document.getElementById('section-gestione');
             const sectionOrdinamento = document.getElementById('section-ordinamento');
+            const sectionImpostazioni = document.getElementById('section-impostazioni');
+
+            tabGestione.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all";
+            tabOrdinamento.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2";
+            tabImpostazioni.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2";
+            
+            sectionGestione.classList.add('hidden');
+            sectionOrdinamento.classList.add('hidden');
+            sectionImpostazioni.classList.add('hidden');
 
             if (tab === 'gestione') {
                 tabGestione.className = "px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all";
-                tabOrdinamento.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2";
                 sectionGestione.classList.remove('hidden');
-                sectionOrdinamento.classList.add('hidden');
-            } else {
-                tabGestione.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all";
+            } else if (tab === 'ordinamento') {
                 tabOrdinamento.className = "px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all flex items-center gap-2";
-                sectionGestione.classList.add('hidden');
                 sectionOrdinamento.classList.remove('hidden');
                 populateReorderCategories();
+            } else if (tab === 'impostazioni') {
+                tabImpostazioni.className = "px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all flex items-center gap-2";
+                sectionImpostazioni.classList.remove('hidden');
+                setupLogoDragAndDrop();
             }
-        }
-
-        function populateReorderCategories() {
-            const select = document.getElementById('reorder-cat-select');
-            select.innerHTML = '';
-            if (categories.length === 0) return;
-            categories.forEach(cat => {
-                select.innerHTML += `<option value="${cat.id}">${cat.name.toUpperCase()}</option>`;
-            });
-            loadReorderCategory();
-        }
-
-        function loadReorderCategory() {
-            const selectVal = document.getElementById('reorder-cat-select').value;
-            const container = document.getElementById('reorder-list-container');
-            container.innerHTML = '';
-            if (!selectVal) return;
-
-            const categoryItems = menuItems.filter(i => i.category_id == selectVal);
-            categoryItems.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-
-            if (categoryItems.length === 0) {
-                container.innerHTML = '<div class="text-center py-10 text-stone-500 italic text-sm">Nessun piatto in questa categoria.</div>';
-                return;
-            }
-
-            categoryItems.forEach((item, index) => {
-                const isFirst = index === 0;
-                const isLast = index === categoryItems.length - 1;
-
-                const div = document.createElement('div');
-                div.className = "bg-dark-850 p-4 rounded-xl border border-stone-850 flex justify-between items-center gap-4 hover:border-gold-500/30 transition-colors";
-                div.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <span class="font-serif font-bold text-gold-500/80 text-base">#${index + 1}</span>
-                        <div>
-                            <h4 class="font-serif font-bold text-stone-100 text-base">${item.name}</h4>
-                            <p class="text-xs text-stone-500 font-mono mt-0.5">Ordinamento: ${item.sort_order || 0}</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="swapOrder(${index}, ${index - 1}, ${selectVal})" ${isFirst ? 'disabled' : ''} class="w-11 h-11 rounded-lg bg-dark-900 border border-stone-800 text-stone-300 hover:text-gold-500 disabled:opacity-30 flex items-center justify-center transition-all cursor-pointer">
-                            <i class="fa-solid fa-arrow-up text-sm"></i>
-                        </button>
-                        <button onclick="swapOrder(${index}, ${index + 1}, ${selectVal})" ${isLast ? 'disabled' : ''} class="w-11 h-11 rounded-lg bg-dark-900 border border-stone-800 text-stone-300 hover:text-gold-500 disabled:opacity-30 flex items-center justify-center transition-all cursor-pointer">
-                            <i class="fa-solid fa-arrow-down text-sm"></i>
-                        </button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        async function swapOrder(currIdx, targetIdx, catId) {
-            const categoryItems = menuItems.filter(i => i.category_id == catId);
-            categoryItems.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-
-            const currentItem = categoryItems[currIdx];
-            const targetItem = categoryItems[targetIdx];
-
-            const tempOrder = currentItem.sort_order;
-            currentItem.sort_order = targetItem.sort_order;
-            targetItem.sort_order = tempOrder;
-
-            loadReorderCategory(); 
-
-            if (!supabaseClient) return;
-            const { error: err1 } = await supabaseClient.from('products').update({ sort_order: currentItem.sort_order }).eq('id', currentItem.id);
-            const { error: err2 } = await supabaseClient.from('products').update({ sort_order: targetItem.sort_order }).eq('id', targetItem.id);
-
-            if (err1 || err2) {
-                showToast("Errore di riordinamento nel database", false);
-                fetchMenu();
-            } else {
-                showToast("Sequenza aggiornata con successo!");
-                fetchMenu();
-            }
-        }
-
-        function showSqlNoticeModal() { document.getElementById('sql-notice-modal').classList.remove('hidden'); }
-        function closeSqlModal() { document.getElementById('sql-notice-modal').classList.add('hidden'); }
-        function copySqlCode() {
-            const code = document.getElementById('sql-code-text').innerText;
-            navigator.clipboard.writeText(code).then(() => { showToast("Codice copiato!"); });
         }
 
         function togglePassword() {
@@ -381,25 +350,32 @@
             const loginBtn = document.getElementById('login-btn');
 
             if (!inputPass) return;
-            loginBtn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Verifica...</span>';
+            
+            const originalBtnText = loginBtn.innerHTML;
+            loginBtn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Verifica in corso...</span>';
             errorLabel.classList.add('hidden');
 
             try {
                 if (!supabaseClient) throw new Error("Supabase non disponibile.");
-                const hashedInput = md5(inputPass);
                 
-                const { data, error } = await supabaseClient
-                    .from('gestione_accessi')
-                    .select('password_hash')
-                    .eq('id', 1)
-                    .single();
+                // Login con Supabase Auth nativo e la mail hardcodata
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: ADMIN_EMAIL,
+                    password: inputPass,
+                });
 
-                if (error || !data || data.password_hash !== hashedInput) throw new Error();
+                if (error) throw error;
+                if (!data.session) throw new Error("Nessuna sessione creata.");
 
+                loginBtn.innerHTML = originalBtnText;
+                document.getElementById('admin-pass').value = '';
                 unlockDashboard();
             } catch (err) {
+                console.error(err);
+                // Stampa l'errore esatto restituito da Supabase
+                errorLabel.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${err.message || "Errore di connessione."}`;
                 errorLabel.classList.remove('hidden');
-                loginBtn.innerHTML = '<span>Entra nel Gestionale</span>';
+                loginBtn.innerHTML = originalBtnText;
                 document.getElementById('admin-pass').value = '';
             }
         }
@@ -413,7 +389,10 @@
             fetchInitialData();
         }
 
-        function logout() {
+        async function logout() {
+            if (supabaseClient) {
+                await supabaseClient.auth.signOut();
+            }
             document.getElementById('admin-pass').value = '';
             document.getElementById('login-container').classList.remove('hidden');
             setTimeout(() => { document.getElementById('login-container').classList.remove('opacity-0'); }, 50);
@@ -686,9 +665,66 @@
             document.querySelectorAll('.allergen-chk').forEach(chk => chk.checked = false);
             document.getElementById('cancel-btn').classList.add('hidden');
         }
+
+        function showSqlNoticeModal() { document.getElementById('sql-notice-modal').classList.remove('hidden'); }
+        function closeSqlModal() { document.getElementById('sql-notice-modal').classList.add('hidden'); }
+        function copySqlCode() {
+            const code = document.getElementById('sql-code-text').innerText;
+            navigator.clipboard.writeText(code).then(() => { showToast("Codice copiato!"); });
+        }
+
+        function setupLogoDragAndDrop() {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('logo-file-input');
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.add('border-gold-500'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => dropZone.classList.remove('border-gold-500'), false);
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length > 0) processLogoFile(files[0]);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (fileInput.files.length > 0) processLogoFile(fileInput.files[0]);
+            });
+        }
+
+        function processLogoFile(file) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = function() {
+                const base64data = reader.result;
+                document.getElementById('base64-text').value = base64data;
+                document.getElementById('base64-preview').src = base64data;
+                document.getElementById('base64-result-container').classList.remove('hidden');
+                showToast("Immagine codificata correttamente!");
+            }
+        }
+
+        function copyGeneratedBase64() {
+            const copyText = document.getElementById('base64-text');
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); 
+            navigator.clipboard.writeText(copyText.value).then(() => {
+                showToast("Codice Base64 copiato con successo!");
+            });
+        }
     </script>
 </body>
 </html>
-
-
-```
