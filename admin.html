@@ -36,7 +36,6 @@
     <div id="login-container" class="fixed inset-0 bg-dark-950 flex items-center justify-center p-4 z-50 transition-opacity duration-300 animate-fade-in">
         <div class="bg-dark-900 rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-stone-900 text-center space-y-6">
             <div class="flex flex-col items-center justify-center space-y-3">
-                <!-- Logo WebP su login, path esplicito relativo -->
                 <img id="login-logo-img" src="./logo.webp" alt="PEMA" class="h-20 sm:h-24 w-auto object-contain select-none" onerror="this.style.display='none'; document.getElementById('login-fallback-txt').classList.remove('hidden');">
                 <h1 id="login-fallback-txt" class="hidden font-serif text-3xl tracking-[0.2em] text-gold-500 font-light uppercase">P E M A</h1>
                 <p class="font-serif text-[9px] tracking-[0.35em] text-stone-500 uppercase italic">Pannello Amministrativo</p>
@@ -52,9 +51,7 @@
                         </button>
                     </div>
                 </div>
-                <div id="login-error" class="text-xs text-rose-400 font-medium bg-rose-950/20 p-3.5 rounded-xl border border-rose-900/30 hidden flex items-center gap-2">
-                    <!-- Il testo verrà popolato dinamicamente con l'errore esatto -->
-                </div>
+                <div id="login-error" class="text-xs text-rose-400 font-medium bg-rose-950/20 p-3.5 rounded-xl border border-rose-900/30 hidden flex items-center gap-2"></div>
                 <button type="submit" id="login-btn" class="w-full bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-all cursor-pointer text-sm tracking-widest uppercase flex items-center justify-center gap-2 min-h-[48px]">
                     <span>Entra nel Gestionale</span>
                 </button>
@@ -62,7 +59,7 @@
         </div>
     </div>
 
-    <!-- Modale d'aiuto SQL d'emergenza se manca la colonna 'available' -->
+    <!-- Modale SQL -->
     <div id="sql-notice-modal" class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-dark-900 rounded-2xl max-w-md w-full p-8 border border-stone-800 text-center">
             <i class="fa-solid fa-database text-3xl text-gold-500 mb-4 animate-bounce"></i>
@@ -80,7 +77,7 @@
         </div>
     </div>
 
-    <!-- Feedback Toast -->
+    <!-- Toast -->
     <div id="toast" class="fixed bottom-6 right-6 z-50 bg-stone-900 text-stone-100 px-6 py-4 rounded-xl shadow-2xl border border-stone-800 flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
         <span id="toast-icon" class="text-gold-500"><i class="fa-solid fa-circle-check"></i></span>
         <span id="toast-message" class="text-xs font-semibold uppercase tracking-widest"></span>
@@ -110,20 +107,17 @@
         </div>
     </div>
 
-    <!-- Dashboard Principale -->
+    <!-- Dashboard -->
     <div id="dashboard" class="hidden flex-1 flex flex-col">
         <header class="bg-dark-900 border-b border-stone-900 py-6 px-4 sticky top-0 z-40">
             <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-                
                 <div class="flex items-center gap-4 justify-center sm:justify-start">
-                    <!-- Logo WebP sulla Dashboard, path esplicito -->
                     <img id="dash-logo-img" src="./logo.webp" alt="PEMA" class="h-10 sm:h-12 w-auto object-contain select-none" onerror="this.style.display='none'; document.getElementById('dash-fallback-txt').classList.remove('hidden');">
                     <div>
                         <h1 id="dash-fallback-txt" class="hidden font-serif text-xl sm:text-2xl tracking-[0.2em] text-gold-500 font-light uppercase select-none">PEMA</h1>
                         <p class="text-stone-500 text-[10px] uppercase tracking-[0.25em] mt-0.5">Gestione e Configurazione Piatti</p>
                     </div>
                 </div>
-                
                 <div class="flex items-center gap-4">
                     <span class="text-[9px] bg-gold-500/10 text-gold-400 border border-gold-500/20 px-3 py-1.5 rounded-md font-mono uppercase font-semibold">Auth Live</span>
                     <button onclick="logout()" class="text-stone-400 hover:text-stone-100 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer min-h-[44px]">
@@ -133,7 +127,7 @@
             </div>
         </header>
 
-        <!-- Selettore Tab -->
+        <!-- Tab -->
         <div class="max-w-6xl mx-auto px-4 mt-8 w-full overflow-x-auto no-scrollbar">
             <div class="flex border-b border-stone-900 min-w-max">
                 <button onclick="switchTab('gestione')" id="tab-gestione" class="px-6 py-3.5 border-b-2 border-gold-500 text-gold-500 font-serif font-bold tracking-widest text-sm uppercase transition-all whitespace-nowrap">Gestione Piatti</button>
@@ -146,10 +140,10 @@
 
         <main class="max-w-6xl mx-auto px-4 py-8 flex-1 w-full">
             
-            <!-- SEZIONE 1: TABELLA DI GESTIONE & AGGIUNTA -->
+            <!-- SEZIONE 1: GESTIONE PIATTI -->
             <div id="section-gestione" class="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full items-start">
                 
-                <!-- Colonna Form (Aggiungi/Modifica) -->
+                <!-- Form -->
                 <div class="lg:col-span-4 lg:sticky lg:top-24 max-h-none lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto no-scrollbar w-full">
                     <div class="bg-dark-900 p-6 rounded-2xl border border-stone-900">
                         <h2 id="form-title" class="font-serif text-lg font-bold text-gold-500 mb-6 uppercase tracking-widest flex items-center gap-2">
@@ -164,9 +158,7 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Categoria *</label>
-                                    <select id="prod-category" required class="w-full text-base p-4 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans cursor-pointer">
-                                        <!-- Popolato dinamicamente -->
-                                    </select>
+                                    <select id="prod-category" required class="w-full text-base p-4 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all font-sans cursor-pointer"></select>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Prezzo (€) *</label>
@@ -187,15 +179,10 @@
                                 <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Descrizione / Ingredienti</label>
                                 <textarea id="prod-description" rows="3" placeholder="Composizione del piatto..." class="w-full text-base p-4 bg-dark-850 border border-stone-850 rounded-xl outline-none text-stone-100 focus:border-gold-500 transition-all resize-none font-sans"></textarea>
                             </div>
-                            
-                            <!-- Griglia Allergeni -->
                             <div>
                                 <label class="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-2">Allergeni Presenti</label>
-                                <div id="allergens-grid-container" class="max-h-36 overflow-y-auto bg-dark-850 border border-stone-850 rounded-xl p-3.5 grid grid-cols-2 gap-3 no-scrollbar">
-                                    <!-- Popolati dinamicamente -->
-                                </div>
+                                <div id="allergens-grid-container" class="max-h-36 overflow-y-auto bg-dark-850 border border-stone-850 rounded-xl p-3.5 grid grid-cols-2 gap-3 no-scrollbar"></div>
                             </div>
-
                             <div class="flex gap-2 pt-4 border-t border-stone-900">
                                 <button type="submit" class="flex-1 bg-gold-500 hover:bg-gold-600 text-dark-950 font-bold py-4 rounded-xl transition-colors text-xs tracking-widest uppercase cursor-pointer min-h-[48px]">Salva Piatto</button>
                                 <button type="button" id="cancel-btn" onclick="resetForm()" class="hidden bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold py-4 px-4 rounded-xl transition-colors text-xs tracking-widest uppercase cursor-pointer min-h-[48px]">Annulla</button>
@@ -204,15 +191,15 @@
                     </div>
                 </div>
 
-                <!-- Tabella su Desktop, Lista Cards su Mobile -->
-                <div class="lg:col-span-8 space-y-4 w-full">
+                <!-- ✅ FIX: min-w-0 overflow-hidden impedisce alla colonna di sfondare la griglia -->
+                <div class="lg:col-span-8 space-y-4 w-full min-w-0 overflow-hidden">
                     <div class="flex bg-dark-900 px-5 py-4 border border-stone-900 rounded-2xl items-center gap-3.5 shadow-lg">
                         <i class="fa-solid fa-magnifying-glass text-stone-500 text-base"></i>
                         <input type="text" id="search-input" oninput="filterMenu()" placeholder="Cerca piatti..." class="bg-transparent w-full border-none focus:outline-none text-base text-stone-100 font-sans">
                     </div>
 
-                    <!-- Layout Tabella Desktop -->
-                    <div class="hidden md:block bg-dark-900 rounded-2xl border border-stone-900 overflow-hidden shadow-2xl">
+                    <!-- ✅ FIX: min-w-0 sulla card wrapper della tabella -->
+                    <div class="hidden md:block bg-dark-900 rounded-2xl border border-stone-900 overflow-hidden shadow-2xl min-w-0">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
@@ -229,15 +216,12 @@
                         </div>
                     </div>
 
-                    <!-- Layout Cards Mobile -->
                     <div id="cards-mobile-list" class="block md:hidden space-y-4"></div>
                 </div>
             </div>
 
             <!-- SEZIONE 2: GESTIONE CATEGORIE -->
             <div id="section-categorie" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 w-full items-start">
-                
-                <!-- Aggiungi Categoria -->
                 <div class="lg:col-span-4 lg:sticky lg:top-24 w-full">
                     <div class="bg-dark-900 p-6 rounded-2xl border border-stone-900">
                         <h2 class="font-serif text-lg font-bold text-gold-500 mb-6 uppercase tracking-widest flex items-center gap-2">
@@ -253,8 +237,6 @@
                         </form>
                     </div>
                 </div>
-
-                <!-- Elenco Categorie -->
                 <div class="lg:col-span-8 w-full">
                     <div class="bg-dark-900 rounded-2xl border border-stone-900 overflow-hidden shadow-2xl">
                         <div class="overflow-x-auto">
@@ -272,16 +254,14 @@
                 </div>
             </div>
 
-            <!-- SEZIONE 3: INTERFACCIA RIORDINAMENTO PORTATE -->
+            <!-- SEZIONE 3: ORDINAMENTO -->
             <div id="section-ordinamento" class="hidden bg-dark-900 rounded-2xl border border-stone-900 p-6 md:p-8 max-w-3xl mx-auto shadow-2xl">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-850 pb-6 mb-6">
                     <div>
                         <h2 class="font-serif text-2xl text-gold-500 uppercase tracking-widest">Ordinamento Sequenza Piatti</h2>
                         <p class="text-stone-400 text-sm mt-1">Sposta i piatti su e giù con le frecce per riordinare la visualizzazione.</p>
                     </div>
-                    <select id="reorder-cat-select" onchange="loadReorderCategory()" class="bg-dark-850 border border-stone-800 p-4 rounded-xl text-stone-100 text-base font-bold uppercase tracking-wider focus:border-gold-500 outline-none cursor-pointer w-full sm:w-auto">
-                        <!-- Popolato dinamicamente -->
-                    </select>
+                    <select id="reorder-cat-select" onchange="loadReorderCategory()" class="bg-dark-850 border border-stone-800 p-4 rounded-xl text-stone-100 text-base font-bold uppercase tracking-wider focus:border-gold-500 outline-none cursor-pointer w-full sm:w-auto"></select>
                 </div>
                 <div id="reorder-list-container" class="space-y-3"></div>
             </div>
@@ -292,7 +272,7 @@
     <script>
         const SUPABASE_URL = "https://cpmianmjcxhputneygsw.supabase.co";
         const SUPABASE_KEY = "sb_publishable_NtnKIMk1srrth8CjqcUl0w_hyotnwgm";
-        const ADMIN_EMAIL = "adminpema@pema.it"; // <-- Auth ufficiale Supabase
+        const ADMIN_EMAIL = "adminpema@pema.it";
         
         let supabaseClient;
         let menuItems = [];
@@ -308,13 +288,10 @@
             console.error("Errore init Supabase.");
         }
 
-        // Recupera la sessione persistente al caricamento della pagina
         document.addEventListener('DOMContentLoaded', async () => {
             if (supabaseClient) {
                 const { data: { session } } = await supabaseClient.auth.getSession();
-                if (session) {
-                    unlockDashboard();
-                }
+                if (session) unlockDashboard();
             }
         });
 
@@ -322,12 +299,10 @@
             const tabGestione = document.getElementById('tab-gestione');
             const tabCategorie = document.getElementById('tab-categorie');
             const tabOrdinamento = document.getElementById('tab-ordinamento');
-            
             const sectionGestione = document.getElementById('section-gestione');
             const sectionCategorie = document.getElementById('section-categorie');
             const sectionOrdinamento = document.getElementById('section-ordinamento');
 
-            // Reset classi
             tabGestione.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all whitespace-nowrap";
             tabCategorie.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all whitespace-nowrap";
             tabOrdinamento.className = "px-6 py-3.5 border-b-2 border-transparent text-stone-500 font-serif tracking-widest text-sm uppercase hover:text-stone-300 transition-all flex items-center gap-2 whitespace-nowrap";
@@ -366,7 +341,6 @@
             const inputPass = document.getElementById('admin-pass').value;
             const errorLabel = document.getElementById('login-error');
             const loginBtn = document.getElementById('login-btn');
-
             if (!inputPass) return;
             
             const originalBtnText = loginBtn.innerHTML;
@@ -375,15 +349,9 @@
 
             try {
                 if (!supabaseClient) throw new Error("Supabase non disponibile.");
-                
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email: ADMIN_EMAIL,
-                    password: inputPass,
-                });
-
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email: ADMIN_EMAIL, password: inputPass });
                 if (error) throw error;
                 if (!data.session) throw new Error("Nessuna sessione creata.");
-
                 loginBtn.innerHTML = originalBtnText;
                 document.getElementById('admin-pass').value = '';
                 unlockDashboard();
@@ -406,9 +374,7 @@
         }
 
         async function logout() {
-            if (supabaseClient) {
-                await supabaseClient.auth.signOut();
-            }
+            if (supabaseClient) await supabaseClient.auth.signOut();
             document.getElementById('admin-pass').value = '';
             document.getElementById('login-container').classList.remove('hidden');
             setTimeout(() => { document.getElementById('login-container').classList.remove('opacity-0'); }, 50);
@@ -434,12 +400,10 @@
                     supabaseClient.from('products').select('*').order('sort_order', { ascending: true }),
                     supabaseClient.from('product_allergens').select('*')
                 ]);
-
                 categories = cats.data || [];
                 allergens = algs.data || [];
                 menuItems = mItems.data || [];
                 productAllergens = pAlgs.data || [];
-
                 populateCategoryDropdowns();
                 renderAllergensCheckboxes();
                 renderTable(menuItems);
@@ -456,29 +420,19 @@
             renderTable(menuItems);
         }
 
-        // --- GESTIONE CATEGORIE ---
         async function saveCategory(e) {
             e.preventDefault();
             if (!supabaseClient) return;
-            
             const catNameInput = document.getElementById('new-cat-name');
             const catName = catNameInput.value.trim();
             if (!catName) return;
-
-            // Trova il sort_order più alto per metterlo in fondo
             const maxSort = categories.reduce((max, c) => Math.max(max, c.sort_order || 0), 0);
-            
             try {
-                const { error } = await supabaseClient.from('categories').insert([{
-                    name: catName,
-                    sort_order: maxSort + 1
-                }]);
-                
+                const { error } = await supabaseClient.from('categories').insert([{ name: catName, sort_order: maxSort + 1 }]);
                 if (error) throw error;
-                
                 showToast("Categoria creata con successo!");
                 catNameInput.value = '';
-                fetchInitialData(); // Aggiorna DB locale, tendine e liste
+                fetchInitialData();
             } catch (err) {
                 console.error(err);
                 showToast("Errore durante la creazione", false);
@@ -488,22 +442,16 @@
         function renderCategoriesTable() {
             const tbody = document.getElementById('categories-table-body');
             tbody.innerHTML = '';
-            
             if (categories.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="2" class="p-8 text-center text-stone-500 italic text-sm">Nessuna categoria trovata.</td></tr>`;
                 return;
             }
-
             categories.forEach(cat => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-stone-900/40 transition-colors";
                 tr.innerHTML = `
-                    <td class="p-4">
-                        <div class="font-serif font-bold text-stone-100 text-lg uppercase tracking-wider">${cat.name}</div>
-                    </td>
-                    <td class="p-4 text-right">
-                        <button onclick="openDeleteCatModal(${cat.id})" class="text-rose-500 hover:text-rose-400 font-bold text-xs uppercase tracking-widest cursor-pointer min-h-[44px] min-w-[44px]">Elimina</button>
-                    </td>
+                    <td class="p-4"><div class="font-serif font-bold text-stone-100 text-lg uppercase tracking-wider">${cat.name}</div></td>
+                    <td class="p-4 text-right"><button onclick="openDeleteCatModal(${cat.id})" class="text-rose-500 hover:text-rose-400 font-bold text-xs uppercase tracking-widest cursor-pointer min-h-[44px] min-w-[44px]">Elimina</button></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -526,17 +474,13 @@
 
         async function confirmDeleteCategory() {
             if (idCatToDelete === null || !supabaseClient) return;
-            
-            // Verifica front-end per evitare errori FK.
             const hasProducts = menuItems.some(i => i.category_id === idCatToDelete);
             if (hasProducts) {
                 showToast("Errore: la categoria contiene piatti. Rimuovili prima di procedere.", false);
                 closeDeleteCatModal();
                 return;
             }
-            
             const { error } = await supabaseClient.from('categories').delete().eq('id', idCatToDelete);
-            
             if (error) {
                 console.error(error);
                 showToast("Errore durante l'eliminazione.", false);
@@ -546,7 +490,6 @@
             }
             closeDeleteCatModal();
         }
-        // --- FINE GESTIONE CATEGORIE ---
 
         function populateCategoryDropdowns() {
             const selectForm = document.getElementById('prod-category');
@@ -573,18 +516,16 @@
             const newVal = !currentVal;
             const item = menuItems.find(i => i.id === productId);
             if (item) item.available = newVal;
-            renderTable(menuItems); 
-
+            renderTable(menuItems);
             if (!supabaseClient) return;
             const { error } = await supabaseClient.from('products').update({ available: newVal }).eq('id', productId);
-            
             if (error) {
                 if (error.code === '42703' || error.message.includes('available')) {
                     showSqlNoticeModal();
                 } else {
                     showToast("Errore durante l'aggiornamento dello stato", false);
                 }
-                fetchMenu(); 
+                fetchMenu();
             } else {
                 showToast(newVal ? "Piatto visibile sul menu!" : "Piatto nascosto con successo");
             }
@@ -607,7 +548,6 @@
                 const avLabel = item.available ? 'Visibile' : 'Nascosto';
                 const avClass = item.available ? 'bg-gold-500/10 text-gold-400 border border-gold-500/20' : 'bg-stone-800 text-stone-500';
 
-                // Desktop row
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-stone-900/40 transition-colors";
                 tr.innerHTML = `
@@ -630,7 +570,6 @@
                 `;
                 tbody.appendChild(tr);
 
-                // Mobile Card
                 const card = document.createElement('div');
                 card.className = "bg-dark-900 border border-stone-900 rounded-2xl p-6 space-y-4 shadow-lg";
                 card.innerHTML = `
@@ -669,7 +608,6 @@
         async function saveProduct(e) {
             e.preventDefault();
             if (!supabaseClient) return;
-
             const id = document.getElementById('prod-id').value;
             const payload = {
                 name: document.getElementById('prod-name').value,
@@ -679,7 +617,6 @@
                 price_per_person: document.getElementById('prod-price-per-person').checked,
                 available: true
             };
-
             const minPersVal = document.getElementById('prod-min-persons').value;
             payload.min_persons = minPersVal ? parseInt(minPersVal) : null;
 
@@ -692,21 +629,17 @@
                 } else {
                     const sameCatCount = menuItems.filter(i => i.category_id === payload.category_id).length;
                     payload.sort_order = sameCatCount + 1;
-
                     const { data, error } = await supabaseClient.from('products').insert([payload]).select();
                     if (error) throw error;
                     savedId = data[0].id;
                 }
-
                 await supabaseClient.from('product_allergens').delete().eq('product_id', savedId);
                 const selectedAllergens = Array.from(document.querySelectorAll('.allergen-chk:checked')).map(chk => parseInt(chk.value));
-                
                 if (selectedAllergens.length > 0) {
                     const relations = selectedAllergens.map(alId => ({ product_id: savedId, allergen_id: alId }));
                     const { error: relErr } = await supabaseClient.from('product_allergens').insert(relations);
                     if (relErr) throw relErr;
                 }
-
                 showToast("Piatto salvato con successo!");
                 resetForm();
                 fetchInitialData();
@@ -719,7 +652,6 @@
         function editProduct(id) {
             const item = menuItems.find(i => i.id == id);
             if (!item) return;
-
             document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-gold-500"></i> Modifica Piatto`;
             document.getElementById('prod-id').value = item.id;
             document.getElementById('prod-name').value = item.name;
@@ -728,16 +660,14 @@
             document.getElementById('prod-min-persons').value = item.min_persons || '';
             document.getElementById('prod-price-per-person').checked = item.price_per_person;
             document.getElementById('prod-description').value = item.description || '';
-
             document.querySelectorAll('.allergen-chk').forEach(chk => chk.checked = false);
             const activeAllergens = productAllergens.filter(pa => pa.product_id === item.id).map(pa => pa.allergen_id);
             activeAllergens.forEach(alId => {
                 const chk = document.getElementById(`al-${alId}`);
                 if (chk) chk.checked = true;
             });
-
             document.getElementById('cancel-btn').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function openDeleteModal(id) {
@@ -790,19 +720,15 @@
             const container = document.getElementById('reorder-list-container');
             container.innerHTML = '';
             if (!selectVal) return;
-
             const categoryItems = menuItems.filter(i => i.category_id == selectVal);
             categoryItems.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-
             if (categoryItems.length === 0) {
                 container.innerHTML = '<div class="text-center py-10 text-stone-500 italic text-sm">Nessun piatto in questa categoria.</div>';
                 return;
             }
-
             categoryItems.forEach((item, index) => {
                 const isFirst = index === 0;
                 const isLast = index === categoryItems.length - 1;
-
                 const div = document.createElement('div');
                 div.className = "bg-dark-850 p-4 rounded-xl border border-stone-850 flex justify-between items-center gap-4 hover:border-gold-500/30 transition-colors";
                 div.innerHTML = `
@@ -827,42 +753,25 @@
         }
 
         async function swapOrder(currIdx, targetIdx, catId) {
-            // Prendi tutti gli elementi della categoria ordinati
             let categoryItems = menuItems.filter(i => i.category_id == catId);
             categoryItems.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-
-            // Esegui lo scambio a livello di array
             const temp = categoryItems[currIdx];
             categoryItems[currIdx] = categoryItems[targetIdx];
             categoryItems[targetIdx] = temp;
-
-            // Ricalcola il sort_order per tutta la categoria in modo sequenziale (1, 2, 3...)
-            // Questo impedisce bug derivanti da sort_order doppi o nulli pre-esistenti nel db.
-            categoryItems.forEach((item, index) => {
-                item.sort_order = index + 1;
-            });
-
-            // Aggiorna subito la visualizzazione in memoria per velocità
-            loadReorderCategory(); 
-
+            categoryItems.forEach((item, index) => { item.sort_order = index + 1; });
+            loadReorderCategory();
             if (!supabaseClient) return;
-
-            // Prepara le query di aggiornamento per tutti gli elementi ricalcolati
             const updates = categoryItems.map(item =>
                 supabaseClient.from('products').update({ sort_order: item.sort_order }).eq('id', item.id)
             );
-
-            // Esegui le query in parallelo
             const results = await Promise.all(updates);
-            
             const hasError = results.some(res => res.error);
-
             if (hasError) {
                 showToast("Errore di riordinamento nel database", false);
-                fetchMenu(); // Revert
+                fetchMenu();
             } else {
                 showToast("Sequenza aggiornata con successo!");
-                fetchMenu(); // Sincronizza lo stato master
+                fetchMenu();
             }
         }
 
