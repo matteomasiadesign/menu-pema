@@ -201,10 +201,10 @@
                     <!-- ✅ FIX: min-w-0 sulla card wrapper della tabella -->
                     <div class="hidden md:block bg-dark-900 rounded-2xl border border-stone-900 overflow-hidden shadow-2xl min-w-0">
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
+                            <table class="w-full text-left border-collapse table-fixed">
                                 <thead>
                                     <tr class="border-b border-stone-900 text-xs font-bold text-stone-500 uppercase tracking-widest bg-black/40">
-                                        <th class="p-4">Piatto</th>
+                                        <th class="p-4 w-[35%]">Piatto</th>
                                         <th class="p-4">Categoria</th>
                                         <th class="p-4 text-center">Visibilità</th>
                                         <th class="p-4">Prezzo</th>
@@ -552,7 +552,7 @@
                 tr.className = "hover:bg-stone-900/40 transition-colors";
                 tr.innerHTML = `
                     <td class="p-4">
-                        <div class="font-serif font-bold text-stone-100 text-base">${item.name}</div>
+                        <div class="font-serif font-bold text-stone-100 text-base truncate">${item.name}</div>
                         ${item.description ? `<div class="text-xs text-stone-500 max-w-xs truncate mt-1">${item.description}</div>` : ''}
                     </td>
                     <td class="p-4"><span class="bg-stone-850 text-stone-300 text-xs font-semibold px-2.5 py-1 rounded-md uppercase tracking-wider">${catName}</span></td>
