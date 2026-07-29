@@ -11,6 +11,6 @@ jobs:
     steps:
       - name: Fai una chiamata API a Supabase
         run: |
-          curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/products?select=*&limit=1" \
+          curl -s -f -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/products?select=*&limit=1" \
           -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
           -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
