@@ -9,8 +9,11 @@ jobs:
   ping-supabase:
     runs-on: ubuntu-latest
     steps:
-      - name: Fai una chiamata API a Supabase
+      - name: Esegui Ping su Supabase
         run: |
-          curl -s -f -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/products?select=*&limit=1" \
+          RESPONSE=$(curl -f -s -S -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/products?select=*&limit=1&bust=${{ github.run_id }}" \
           -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+          
+          echo "Risposta da Supabase:"
+          echo $RESPONSE
