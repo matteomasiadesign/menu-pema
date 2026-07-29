@@ -11,9 +11,11 @@ jobs:
     steps:
       - name: Esegui Ping su Supabase
         run: |
-          RESPONSE=$(curl -f -s -S -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/products?select=*&limit=1&bust=${{ github.run_id }}" \
+          RESPONSE=$(curl -f -s -S -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/products?select=*&limit=1" \
           -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Cache-Control: no-cache" \
+          -H "x-github-run-id: ${{ github.run_id }}")
           
           echo "Risposta da Supabase:"
           echo $RESPONSE
