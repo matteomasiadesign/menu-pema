@@ -8,31 +8,16 @@ on:
 jobs:
   ping-supabase:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Ping Supabase
+      - name: Esegui Ping su Supabase
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          set -euo pipefail
-
-          if [[ -z "$SUPABASE_URL" || -z "$SUPABASE_ANON_KEY" ]]; then
-            echo "::error::SUPABASE_URL or SUPABASE_ANON_KEY is not configured"
-            exit 1
-          fi
-
-          BASE_URL="${SUPABASE_URL%/}"
-
-          RESPONSE="$(
-            curl --silent --show-error --fail-with-body \
-              --get "$BASE_URL/rest/v1/products" \
-              --data-urlencode "select=id" \
-              --data-urlencode "limit=1" \
-              --data-urlencode "bust=${GITHUB_RUN_ID}" \
-              --header "apikey: $SUPABASE_ANON_KEY" \
-              --header "Authorization: Bearer $SUPABASE_ANON_KEY"
-          )"
+          RESPONSE=$(curl --fail-with-body -sS \
+            "${SUPABASE_URL}/rest/v1/products?select=*&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
 
           echo "Risposta da Supabase:"
           echo "$RESPONSE"
